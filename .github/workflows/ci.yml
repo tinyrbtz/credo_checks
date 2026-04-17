@@ -1,0 +1,55 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    name: Verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    env:
+      MIX_ENV: test
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Set up elixir & erlang
+        id: beam
+        uses: erlef/setup-beam@v1
+        with:
+          version-file: .tool-versions
+          version-type: strict
+
+      - name: Restore mix cache
+        uses: actions/cache@v5
+        with:
+          path: deps
+          key: mix-${{ runner.os }}-${{ steps.beam.outputs.otp-version }}-${{ steps.beam.outputs.elixir-version }}-${{ hashFiles('**/mix.lock') }}
+
+      - name: Restore build cache
+        uses: actions/cache@v5
+        with:
+          path: _build
+          key: build-${{ runner.os }}-${{ steps.beam.outputs.otp-version }}-${{ steps.beam.outputs.elixir-version }}-${{ hashFiles('**/mix.lock') }}
+
+      - name: Get CPU core count
+        run: |
+          echo "CPU_CORES=$(nproc)" >> $GITHUB_ENV
+
+      - name: Fetch dependencies
+        run: mix deps.get
+
+      - name: Compile dependencies
+        run: mix deps.compile
+        env:
+          MIX_OS_DEPS_COMPILE_PARTITION_COUNT: ${{ env.CPU_CORES }}
+
+      - name: Verify
+        run: mix verify
