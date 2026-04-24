@@ -3,7 +3,7 @@ defmodule Rbtz.CredoChecks.MixProject do
 
   @name "rbtz_credo_checks"
   @description "Highly opinionated Credo checks used in Tiny Robots projects."
-  @version "0.1.0"
+  @version "0.2.0"
   @source_url "https://github.com/tinyrbtz/credo_checks"
 
   def project do
