@@ -19,8 +19,10 @@ defmodule Rbtz.CredoChecks.HeexSourceTest do
     assert [{heex, line_fn}] = templates
     assert String.contains?(heex, "Hello")
     assert is_function(line_fn, 1)
-    assert line_fn.(0) == 3
-    assert line_fn.(2) == 5
+    # `~H"""` sits on source line 3 but heredoc content begins on line 4, so
+    # content offset 0 maps to line 4.
+    assert line_fn.(0) == 4
+    assert line_fn.(2) == 6
   end
 
   test "returns [] when source cannot be parsed" do

@@ -10,7 +10,10 @@ defmodule Rbtz.CredoChecks.HeexSource do
   `contents`) and returns the line number in the `.ex` source file to report
   an issue against.
 
-  For `~H` sigils, `line_fn.(off)` = sigil_start_line + off.
+  For `~H` sigils, `line_fn.(off)` = sigil_start_line + off for inline sigils
+  (`~H"<x/>"`) or sigil_start_line + 1 + off for heredoc sigils (`~H\""" ... \"""`),
+  since the first line of heredoc content sits on the source line *after* the
+  opening delimiter.
 
   For `embed_templates`, the template contents live in a separate
   `.html.heex` file — Credo's `format_issue` can only reference lines that
@@ -49,7 +52,8 @@ defmodule Rbtz.CredoChecks.HeexSource do
   defp collect({:sigil_H, meta, [{:<<>>, _, [heex]}, []]} = ast, acc, _source_file)
        when is_binary(heex) do
     sigil_line = meta[:line] || 1
-    line_fn = &(sigil_line + &1)
+    content_offset = if meta[:delimiter] in [~s("""), "'''"], do: 1, else: 0
+    line_fn = &(sigil_line + content_offset + &1)
     {ast, [{heex, line_fn} | acc]}
   end
 

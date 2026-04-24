@@ -186,11 +186,13 @@ defmodule Rbtz.CredoChecks.Readability.ClassAttrFormattingTest do
       |> to_source_file()
       |> run_check(ClassAttrFormatting)
       |> assert_issue(fn issue ->
-        # The `<a class={[` opening is on a line earlier than the long string.
-        # The long string sits two lines below it, so the reported line_no
-        # must be strictly greater than the opening line.
+        # In the fixture above, the long string literal sits on source line 6:
+        #   line 3: `~H"""`
+        #   line 4: `<a class={[`   (opening)
+        #   line 5: `  "px-2",`
+        #   line 6: `  "px-2 py-1 …"` <- too long
         assert issue.message =~ "exceeding"
-        assert issue.line_no > 4
+        assert issue.line_no == 6
       end)
     end
 
