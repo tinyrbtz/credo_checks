@@ -199,6 +199,7 @@
           {Rbtz.CredoChecks.Readability.PreferCapture, []},
           {Rbtz.CredoChecks.Readability.PreferSigilSForEscapedQuotes, []},
           {Rbtz.CredoChecks.Readability.PreferToTimeout, []},
+          {Rbtz.CredoChecks.Readability.RedundantClassAttrWrapping, []},
           {Rbtz.CredoChecks.Readability.ShorthandDefMustBeCompact, []},
           {Rbtz.CredoChecks.Readability.SnakeCaseVariableNumbering, []},
           {Rbtz.CredoChecks.Readability.TopLevelAliasImportRequire, []},
