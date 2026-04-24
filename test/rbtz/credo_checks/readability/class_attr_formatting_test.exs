@@ -111,7 +111,7 @@ defmodule Rbtz.CredoChecks.Readability.ClassAttrFormattingTest do
       |> assert_issue()
     end
 
-    test "does not flag a multi-line class attr regardless of total content length" do
+    test "does not flag a multi-line class attr when each line is within the limit" do
       ~S'''
       defmodule MyLive do
         def render(assigns) do
@@ -129,6 +129,69 @@ defmodule Rbtz.CredoChecks.Readability.ClassAttrFormattingTest do
       |> to_source_file()
       |> run_check(ClassAttrFormatting)
       |> refute_issues()
+    end
+
+    test "flags a long string literal inside a multi-line class list" do
+      ~S'''
+      defmodule MyLive do
+        def render(assigns) do
+          ~H"""
+          <a class={[
+            "px-2 py-1 text-white bg-blue-600 rounded-md border border-transparent hover:underline focus:ring-2",
+            @extra
+          ]}>x</a>
+          """
+        end
+      end
+      '''
+      |> to_source_file()
+      |> run_check(ClassAttrFormatting)
+      |> assert_issue()
+    end
+
+    test "flags a long string literal inside a multi-line helper call wrapping a list" do
+      ~S'''
+      defmodule MyLive do
+        def render(assigns) do
+          ~H"""
+          <a class={
+            cn([
+              "px-2 py-1 text-white bg-blue-600 rounded-md border border-transparent hover:underline focus:ring-2",
+              @extra
+            ])
+          }>x</a>
+          """
+        end
+      end
+      '''
+      |> to_source_file()
+      |> run_check(ClassAttrFormatting)
+      |> assert_issue()
+    end
+
+    test "reports the issue on the offending inner line, not the opening `class={` line" do
+      ~S'''
+      defmodule MyLive do
+        def render(assigns) do
+          ~H"""
+          <a class={[
+            "px-2",
+            "px-2 py-1 text-white bg-blue-600 rounded-md border border-transparent hover:underline focus:ring-2",
+            @extra
+          ]}>x</a>
+          """
+        end
+      end
+      '''
+      |> to_source_file()
+      |> run_check(ClassAttrFormatting)
+      |> assert_issue(fn issue ->
+        # The `<a class={[` opening is on a line earlier than the long string.
+        # The long string sits two lines below it, so the reported line_no
+        # must be strictly greater than the opening line.
+        assert issue.message =~ "exceeding"
+        assert issue.line_no > 4
+      end)
     end
 
     test "does not flag a short single-line class attr" do

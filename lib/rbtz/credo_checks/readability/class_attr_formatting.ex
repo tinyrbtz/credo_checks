@@ -16,13 +16,14 @@ defmodule Rbtz.CredoChecks.Readability.ClassAttrFormatting do
            keyword-list commas leak to the top level of the attribute
            expression.
 
-        2. **Long single-line class attrs must be broken across multiple
-           lines.** When the line containing a `class={...}` or
-           `class="..."` exceeds `:max_line_length` characters as displayed
-           by the editor (default `98`, matching the Elixir formatter
-           convention), the class attr should be converted to a multi-line
-           list with one logical group per line. Long horizontal class
-           lists are very hard to read and review.
+        2. **No class-attribute line may exceed the max line length.**
+           Whether the attribute is on one line or broken across many,
+           every source line spanned by a `class={...}` or `class="..."`
+           attribute must stay within `:max_line_length` characters as
+           displayed by the editor (default `98`, matching the Elixir
+           formatter convention). Long lines — whether a flat single-line
+           attribute or one long string literal buried inside a multi-line
+           list — should be split into shorter logical groups.
 
       The check inspects every `~H` sigil and every `.heex` template
       referenced via `embed_templates`. Both rules can be violated by the
@@ -40,6 +41,13 @@ defmodule Rbtz.CredoChecks.Readability.ClassAttrFormatting do
 
           <a class={["px-2 text-white", "py-5 bg-blue-600", "rounded-md border border-transparent"]}>x</a>
           <a class="px-2 text-white py-5 bg-blue-600 rounded-md border border-transparent hover:underline">x</a>
+
+      # Bad — a single string inside a multi-line class attr exceeds the limit
+
+          <a class={[
+            "px-2 py-1 text-white bg-blue-600 rounded-md border border-transparent hover:underline focus:ring-2",
+            @extra
+          ]}>x</a>
 
       # Good
 
@@ -74,21 +82,41 @@ defmodule Rbtz.CredoChecks.Readability.ClassAttrFormatting do
 
     heex
     |> find_class_attrs()
-    |> Enum.reduce(ctx, fn {kind, offset, content}, ctx ->
-      line_no = line_fn.(offset)
-      line_text = Enum.at(lines, offset, "")
-      single_line? = not String.contains?(content, "\n")
+    |> Enum.reduce(ctx, &check_attr(&1, &2, lines, line_fn, max_line_length))
+  end
 
-      cond do
-        kind == :interp and needs_brackets?(content) ->
-          put_issue(ctx, issue_for(ctx, :no_brackets, line_no))
+  defp check_attr({:interp, offset, content} = attr, ctx, lines, line_fn, max_line_length) do
+    if needs_brackets?(content) do
+      put_issue(ctx, issue_for(ctx, :no_brackets, line_fn.(offset)))
+    else
+      check_length(attr, ctx, lines, line_fn, max_line_length)
+    end
+  end
 
-        single_line? and String.length(line_text) > max_line_length ->
-          put_issue(ctx, issue_for(ctx, {:too_long, kind}, line_no, max_line_length))
+  defp check_attr({:literal, _, _} = attr, ctx, lines, line_fn, max_line_length) do
+    check_length(attr, ctx, lines, line_fn, max_line_length)
+  end
 
-        true ->
-          ctx
-      end
+  defp check_length({kind, offset, content}, ctx, lines, line_fn, max_line_length) do
+    case find_too_long_line(lines, offset, content, max_line_length) do
+      nil ->
+        ctx
+
+      {bad_idx, bad_text} ->
+        put_issue(
+          ctx,
+          issue_for(ctx, {:too_long, kind}, line_fn.(bad_idx), bad_text, max_line_length)
+        )
+    end
+  end
+
+  defp find_too_long_line(lines, offset, content, max_line_length) do
+    newlines = content |> :binary.matches("\n") |> length()
+
+    offset..(offset + newlines)
+    |> Enum.find_value(fn i ->
+      line = Enum.at(lines, i, "")
+      if String.length(line) > max_line_length, do: {i, line}, else: nil
     end)
   end
 
@@ -177,22 +205,21 @@ defmodule Rbtz.CredoChecks.Readability.ClassAttrFormatting do
     )
   end
 
-  defp issue_for(ctx, {:too_long, kind}, line_no, max_line_length) do
-    {trigger, hint} =
+  defp issue_for(ctx, {:too_long, kind}, line_no, bad_text, max_line_length) do
+    hint =
       case kind do
         :interp ->
-          {"class={", "split the existing list across multiple lines."}
+          "split the list across multiple lines and break long strings into shorter groups."
 
         :literal ->
-          {~s(class="),
-           ~s(convert to `class={[ ... ]}` and split the strings across multiple lines.)}
+          ~s(convert to `class={[ ... ]}` and split the strings across multiple lines.)
       end
 
     format_issue(ctx,
       message:
-        "Line containing `#{trigger}...` exceeds #{max_line_length} characters. " <>
+        "HEEx `class` attribute has a line exceeding #{max_line_length} characters. " <>
           "To stay readable, " <> hint,
-      trigger: trigger,
+      trigger: bad_text |> String.trim_leading() |> String.slice(0, 40),
       line_no: line_no
     )
   end
