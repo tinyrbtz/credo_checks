@@ -10,7 +10,7 @@ defmodule Rbtz.CredoChecks.Readability.AwkwardPipe do
       in the surrounding context, or because a pipe sits on either side of a
       binary operator and obscures precedence.
 
-      Nine sub-rules are checked:
+      Ten sub-rules are checked:
 
         1. **Either operand of `&&` / `||` is a pipe.** Operator-precedence
            and visual flow get muddled.
@@ -107,16 +107,28 @@ defmodule Rbtz.CredoChecks.Readability.AwkwardPipe do
               # Good
               :for={{item, idx} <- Enum.with_index(@items)}
 
+       10. **Dot access on a parenthesized single-step pipe.** Wrapping a
+           pipe in parens just to access a field or call a function on its
+           result hides the linear flow.
+
+              # Bad
+              (string |> URI.parse()).host
+              (string |> Date.from_iso8601!()).year
+
+              # Good
+              URI.parse(string).host
+              Date.from_iso8601!(string).year
+
       Multi-step chains (two or more `|>` in the same expression) are exempt
-      from rules 4, 5, 6, 8, and 9 — a real chain is doing visible work and is
-      preferred over nested calls.
+      from rules 4, 5, 6, 8, 9, and 10 — a real chain is doing visible work
+      and is preferred over nested calls.
 
       **Multi-line layout.** Rules 1, 2, 3, and 7 fire regardless of how the
       expression is laid out — a pipe mixed with `||`, `&&`, `and`, `or`,
       `++`, `<>`, `in`, or any `Kernel.` operator form (`Kernel.||`,
       `Kernel.&&`, `Kernel.and`, `Kernel.or`, `Kernel.+`, `Kernel.-`,
       `Kernel.==`, `Kernel.<`, `Kernel.in`, …) is always awkward, so line
-      breaks never grant exemption. Rules 4, 5, and 6 fire
+      breaks never grant exemption. Rules 4, 5, 6, and 10 fire
       only when the pipe operator itself fits on a single source line — a
       pipe whose LHS is itself multi-line (e.g. a heredoc
       `|> String.downcase()`) is structurally unavoidable and is exempt.
@@ -304,7 +316,8 @@ defmodule Rbtz.CredoChecks.Readability.AwkwardPipe do
     Enum.reduce(args, ctx, &walk/2)
   end
 
-  defp walk({{:., _, _} = dot_expr, _meta, args}, ctx) when is_list(args) do
+  defp walk({{:., _, [base | _]} = dot_expr, meta, args}, ctx) when is_list(args) do
+    ctx = maybe_flag_dot_on_pipe(ctx, base, meta)
     ctx = maybe_flag_non_first_args(ctx, args, false)
     ctx = walk(dot_expr, ctx)
     Enum.reduce(args, ctx, &walk/2)
@@ -337,7 +350,8 @@ defmodule Rbtz.CredoChecks.Readability.AwkwardPipe do
     Enum.reduce(args, ctx, &walk/2)
   end
 
-  defp walk_piped({{:., _, _} = dot_expr, _meta, args}, ctx) when is_list(args) do
+  defp walk_piped({{:., _, [base | _]} = dot_expr, meta, args}, ctx) when is_list(args) do
+    ctx = maybe_flag_dot_on_pipe(ctx, base, meta)
     ctx = maybe_flag_non_first_args(ctx, args, true)
     ctx = walk(dot_expr, ctx)
     Enum.reduce(args, ctx, &walk/2)
@@ -463,6 +477,17 @@ defmodule Rbtz.CredoChecks.Readability.AwkwardPipe do
   end
 
   defp maybe_flag_interp_part(_part, ctx), do: ctx
+
+  # Rule 10: a dot expression `(pipe).name` (field access or function call)
+  # whose base is itself a single-step, single-line pipe. Multi-step chains
+  # are exempt — they're doing visible work.
+  defp maybe_flag_dot_on_pipe(ctx, base, meta) do
+    if single_step_pipe?(base) and pipe_single_line?(base, ctx) do
+      put_issue(ctx, rule10_issue(ctx, line_of(base) || meta[:line]))
+    else
+      ctx
+    end
+  end
 
   # Rule 6: args at position >= 1 (or all args, when the call is piped) that
   # are themselves single-line single-step pipes.
@@ -740,6 +765,15 @@ defmodule Rbtz.CredoChecks.Readability.AwkwardPipe do
       message:
         "Avoid a single-step pipe on the RHS of `<-` inside HEEx `:for=` / `for` — use the plain function-call form.",
       trigger: "<-",
+      line_no: line_no
+    )
+  end
+
+  defp rule10_issue(ctx, line_no) do
+    format_issue(ctx,
+      message:
+        "Avoid wrapping a single-step pipe in parentheses to dot-access its result — use the plain function-call form.",
+      trigger: "|>",
       line_no: line_no
     )
   end

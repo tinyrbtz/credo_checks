@@ -726,6 +726,96 @@ defmodule Rbtz.CredoChecks.Readability.AwkwardPipeTest do
     end
   end
 
+  describe "Rule 10 — dot access on a parenthesized pipe" do
+    test "flags `(string |> URI.parse()).host`" do
+      issues =
+        """
+        defmodule M do
+          def a(string), do: (string |> URI.parse()).host
+        end
+        """
+        |> issues_for()
+
+      assert Enum.any?(issues, &String.contains?(&1.message, "dot-access"))
+    end
+
+    test "flags `(string |> Date.from_iso8601!()).year`" do
+      issues =
+        """
+        defmodule M do
+          def a(string), do: (string |> Date.from_iso8601!()).year
+        end
+        """
+        |> issues_for()
+
+      assert Enum.any?(issues, &String.contains?(&1.message, "dot-access"))
+    end
+
+    test "flags `(string |> URI.parse()).host(:arg)` (function-call form on the result)" do
+      # Same AST shape as field access but with non-empty outer args — proves
+      # the rule fires regardless of whether the dot is an `.atom` field or a
+      # `.fun(args)` call.
+      issues =
+        """
+        defmodule M do
+          def a(string), do: (string |> URI.parse()).host(:opt)
+        end
+        """
+        |> issues_for()
+
+      assert Enum.any?(issues, &String.contains?(&1.message, "dot-access"))
+    end
+
+    test "does not flag a plain `URI.parse(string).host`" do
+      """
+      defmodule M do
+        def a(string), do: URI.parse(string).host
+      end
+      """
+      |> issues_for()
+      |> refute_issues()
+    end
+
+    test "does not flag a multi-step chain whose result is dot-accessed" do
+      """
+      defmodule M do
+        def a(string), do: (string |> String.trim() |> URI.parse()).host
+      end
+      """
+      |> issues_for()
+      |> refute_issues()
+    end
+
+    test "does not flag a single-step pipe that is not dot-accessed" do
+      """
+      defmodule M do
+        def a(string), do: string |> URI.parse()
+      end
+      """
+      |> issues_for()
+      |> refute_issues()
+    end
+
+    test "does not flag a dot-accessed pipe whose LHS is multi-line" do
+      # Heredoc LHS spans multiple lines, so the pipe is structurally
+      # unavoidable and Rule 10 must skip — same exemption as Rules 4/5/6.
+      issues =
+        ~S'''
+        defmodule M do
+          def a do
+            ("""
+             https://example.com
+             """
+             |> URI.parse()).host
+          end
+        end
+        '''
+        |> issues_for()
+
+      refute Enum.any?(issues, &String.contains?(&1.message, "dot-access"))
+    end
+  end
+
   describe "AST shapes" do
     test "walks into map literals with atom keys without flagging them as tuples" do
       # `%{a: x |> f()}` has AST `{:%{}, _, [{:a, pipe}]}`. The inner 2-tuple
