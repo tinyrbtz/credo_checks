@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## Unreleased
+## 0.3.0
 
 - **`AwkwardPipe`**: new sub-rule (Rule 10) flags single-step pipes wrapped in
   parentheses just to dot-access their result — e.g. `(x |> URI.parse()).host`
