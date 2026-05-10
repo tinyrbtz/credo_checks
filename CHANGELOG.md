@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.4.0
+
+- **New check** `Rbtz.CredoChecks.Readability.PreferNilEquality` — prefers
+  `x == nil` / `x != nil` over `is_nil(x)` / `not is_nil(x)` / `!is_nil(x)` in
+  `if` / `unless` / `cond` / `case` conditions and `assert` / `refute`
+  arguments. Walks through `and` / `or` / `&&` / `||` / `not` / `!`. Guards
+  (`when ...`) and Ecto query DSL are unaffected.
+
 ## 0.3.0
 
 - **`AwkwardPipe`**: new sub-rule (Rule 10) flags single-step pipes wrapped in

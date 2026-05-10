@@ -197,6 +197,7 @@
           {Rbtz.CredoChecks.Readability.LiveViewCallbackOrder, []},
           {Rbtz.CredoChecks.Readability.PreferBooleanDataAttrShorthand, []},
           {Rbtz.CredoChecks.Readability.PreferCapture, []},
+          {Rbtz.CredoChecks.Readability.PreferNilEquality, []},
           {Rbtz.CredoChecks.Readability.PreferSigilSForEscapedQuotes, []},
           {Rbtz.CredoChecks.Readability.PreferToTimeout, []},
           {Rbtz.CredoChecks.Readability.RedundantClassAttrWrapping, []},
