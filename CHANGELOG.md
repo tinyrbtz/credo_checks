@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.5.0
+
+- **New check** `Rbtz.CredoChecks.Readability.PreferBlockFormForMultilineIf` —
+  forbids the keyword form `if cond, do: x, else: y` (and the `unless`
+  equivalent) when the expression spans more than one line. Switch to the
+  `do ... else ... end` block form. Single-line keyword form and block form
+  are unaffected.
+
 ## 0.4.0
 
 - **New check** `Rbtz.CredoChecks.Readability.PreferNilEquality` — prefers

@@ -28,6 +28,7 @@ See the individual modules for full descriptions and examples.
 - `Rbtz.CredoChecks.Readability.AwkwardPipe`: Flags pipe usages that hurt readability without giving chaining benefit — pipe on either side of `&&` / `||` / `++` / `<>` / `in` / `and` / `or`, pipes into any `Kernel.` operator form (e.g. `Kernel.&&` / `Kernel.||` / `Kernel.+` / `Kernel.-` / `Kernel.==` / `Kernel.<` / `Kernel.in`), single-step pipes in tuple literals / string interpolation / non-first arg positions / single-line lambdas, any pipe joined in an `if` / `unless` / `cond` condition, single-step pipes on the RHS of `<-` inside HEEx `:for=` / `for` comprehensions, and single-step pipes wrapped in parens just to dot-access their result.
 - `Rbtz.CredoChecks.Readability.ClassAttrFormatting`: Enforces HEEx `class={...}` attributes use list syntax for multiple values, and flags any class-attribute line — single-line or inside a multi-line list — that exceeds `:max_line_length` (default 98).
 - `Rbtz.CredoChecks.Readability.LiveViewCallbackOrder`: Enforces the canonical callback order in `Phoenix.LiveView` modules: `mount` → `handle_params` → `handle_event` → `handle_info` → `handle_async` → helpers → `render`.
+- `Rbtz.CredoChecks.Readability.PreferBlockFormForMultilineIf`: Forbids the keyword form `if cond, do: x, else: y` (and the `unless` equivalent) when the expression spans more than one line — switch to the `do ... else ... end` block form. Single-line keyword form is fine.
 - `Rbtz.CredoChecks.Readability.PreferBooleanDataAttrShorthand`: Forbids `data-[name]:` bracket-variant syntax for boolean data attributes — use `data-name:` instead, reserving brackets for value matching (`data-[state=open]:`).
 - `Rbtz.CredoChecks.Readability.PreferCapture`: Encourages the capture syntax (`&foo/1`, `&Mod.foo/2`, `&(&1 * 2)`) over `fn x -> ... end` when the anonymous function just forwards its arguments to another call in the same order, applies a single operator, or partially applies a call.
 - `Rbtz.CredoChecks.Readability.PreferNilEquality`: Prefers `x == nil` / `x != nil` over `is_nil(x)` / `not is_nil(x)` in `if` / `unless` / `cond` / `case` conditions and in `assert` / `refute` arguments. `is_nil/1` in `when` guards and Ecto query DSL is unaffected.
@@ -98,6 +99,7 @@ See the individual modules for full descriptions and examples.
              {Rbtz.CredoChecks.Readability.AwkwardPipe, []},
              {Rbtz.CredoChecks.Readability.ClassAttrFormatting, []},
              {Rbtz.CredoChecks.Readability.LiveViewCallbackOrder, []},
+             {Rbtz.CredoChecks.Readability.PreferBlockFormForMultilineIf, []},
              {Rbtz.CredoChecks.Readability.PreferBooleanDataAttrShorthand, []},
              {Rbtz.CredoChecks.Readability.PreferCapture, []},
              {Rbtz.CredoChecks.Readability.PreferSigilSForEscapedQuotes, []},
