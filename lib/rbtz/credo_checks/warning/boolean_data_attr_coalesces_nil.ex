@@ -5,9 +5,25 @@ defmodule Rbtz.CredoChecks.Warning.BooleanDataAttrCoalescesNil do
     category: :warning,
     param_defaults: [
       names: ~w(
-        active busy checked collapsed disabled enabled expanded focus
-        hidden hover invalid loading open pressed readonly required
-        selected valid visible
+        active
+        busy
+        checked
+        collapsed
+        disabled
+        enabled
+        expanded
+        focus
+        hidden
+        hover
+        invalid
+        loading
+        open
+        pressed
+        readonly
+        required
+        selected
+        valid
+        visible
       )
     ],
     explanations: [

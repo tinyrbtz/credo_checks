@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.6.0
+
+- **New check** `Rbtz.CredoChecks.Readability.ModuleAttrCollectionFormatting` —
+  flags multi-line collections assigned to module attributes (word sigils,
+  lists, maps/structs, and tuples) that put more than one item on a line. Each
+  item should sit on its own line so the collection is easy to scan, diff, and
+  update. Single-line collections are unaffected, however many items they hold.
+
 ## 0.5.0
 
 - **New check** `Rbtz.CredoChecks.Readability.PreferBlockFormForMultilineIf` —

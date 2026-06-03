@@ -8,6 +8,7 @@
     "/mix.lock"
   ],
   "words": [
+    "analyse",
     "callsite",
     "categorisation",
     "centralises",
@@ -50,6 +51,7 @@
     "neighbouring",
     "nofile",
     "normalise",
+    "nums",
     "nxdomain",
     "organised",
     "parenthesisation",
@@ -65,7 +67,9 @@
     "stmts",
     "tagname",
     "tinyrbtz",
+    "tokenises",
     "trunc",
-    "unpiped"
+    "unpiped",
+    "webp"
   ]
 }

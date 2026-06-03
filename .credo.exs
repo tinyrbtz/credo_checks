@@ -195,6 +195,7 @@
           {Rbtz.CredoChecks.Readability.AwkwardPipe, []},
           {Rbtz.CredoChecks.Readability.ClassAttrFormatting, []},
           {Rbtz.CredoChecks.Readability.LiveViewCallbackOrder, []},
+          {Rbtz.CredoChecks.Readability.ModuleAttrCollectionFormatting, []},
           {Rbtz.CredoChecks.Readability.PreferBooleanDataAttrShorthand, []},
           {Rbtz.CredoChecks.Readability.PreferCapture, []},
           {Rbtz.CredoChecks.Readability.PreferNilEquality, []},
