@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## Unreleased
+## 0.7.0
 
 - **New** `Rbtz.CredoChecks.all/0` — returns every check in this library as a
   `{module, opts}` tuple, ready to append to the `enabled:` list in `.credo.exs`.
