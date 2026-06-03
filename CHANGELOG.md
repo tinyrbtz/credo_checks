@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## Unreleased
+
+- **New** `Rbtz.CredoChecks.all/0` — returns every check in this library as a
+  `{module, opts}` tuple, ready to append to the `enabled:` list in `.credo.exs`.
+  The list is auto-discovered, so it stays in sync as checks are added. This is now
+  the recommended way to enable the checks (see the README).
+- **New** `Rbtz.CredoChecks.all_replacing/1` — like `all/0`, but takes `{module, opts}`
+  replacements to customise a check's options, or `{module, false}` to disable it; an
+  unknown module raises `ArgumentError`.
+
 ## 0.6.0
 
 - **New check** `Rbtz.CredoChecks.Readability.ModuleAttrCollectionFormatting` —

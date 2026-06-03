@@ -11,7 +11,8 @@ These checks are **opinionated by design** — they enforce the Tiny Robots hous
 
 ## Available checks
 
-See the individual modules for full descriptions and examples.
+See the individual modules for full descriptions and examples. The recommended way to enable
+them is `Rbtz.CredoChecks.all/0` — see [Installation and configuration](#installation-and-configuration).
 
 ### Design
 
@@ -82,62 +83,118 @@ See the individual modules for full descriptions and examples.
 
 2. Run `mix deps.get`.
 
-3. Add the desired checks to your `.credo.exs`:
+3. Enable the checks in your `.credo.exs`. The recommended way is `Rbtz.CredoChecks.all/0`,
+   which returns every check as a `{module, opts}` tuple ready to append to your `enabled:`
+   list. It stays in sync automatically as this library adds checks — there's nothing to
+   hand-maintain:
 
    ```elixir
    %{
      configs: [
        %{
          checks: %{
-           enabled: [
-             {Rbtz.CredoChecks.Design.BareScriptInHeex, []},
-             {Rbtz.CredoChecks.Design.CnInClassList, []},
-             {Rbtz.CredoChecks.Design.CustomAliasInRouterScope, []},
-             {Rbtz.CredoChecks.Design.PreferLogsterInLib, []},
-             {Rbtz.CredoChecks.Design.RawHtmlElementsInHeex, []},
-             {Rbtz.CredoChecks.Design.RawSvgInHeex, []},
-             {Rbtz.CredoChecks.Readability.AtomHttpStatusCodes, []},
-             {Rbtz.CredoChecks.Readability.AwkwardPipe, []},
-             {Rbtz.CredoChecks.Readability.ClassAttrFormatting, []},
-             {Rbtz.CredoChecks.Readability.LiveViewCallbackOrder, []},
-             {Rbtz.CredoChecks.Readability.ModuleAttrCollectionFormatting, []},
-             {Rbtz.CredoChecks.Readability.PreferBlockFormForMultilineIf, []},
-             {Rbtz.CredoChecks.Readability.PreferBooleanDataAttrShorthand, []},
-             {Rbtz.CredoChecks.Readability.PreferCapture, []},
-             {Rbtz.CredoChecks.Readability.PreferSigilSForEscapedQuotes, []},
-             {Rbtz.CredoChecks.Readability.PreferToTimeout, []},
-             {Rbtz.CredoChecks.Readability.RedundantClassAttrWrapping, []},
-             {Rbtz.CredoChecks.Readability.ShorthandDefMustBeCompact, []},
-             {Rbtz.CredoChecks.Readability.SnakeCaseVariableNumbering, []},
-             {Rbtz.CredoChecks.Readability.TopLevelAliasImportRequire, []},
-             {Rbtz.CredoChecks.Refactor.PreferEctoMigrationHelper, []},
-             {Rbtz.CredoChecks.Refactor.PreferForAttrOverForBlock, []},
-             {Rbtz.CredoChecks.Refactor.PreferTextColumns, []},
-             {Rbtz.CredoChecks.Refactor.PreferToFormInTemplates, []},
-             {Rbtz.CredoChecks.Refactor.RawHtmlMatchInLiveViewTests, []},
-             {Rbtz.CredoChecks.Refactor.RedundantThen, []},
-             {Rbtz.CredoChecks.Warning.AssertNonEmptyBeforeIterate, []},
-             {Rbtz.CredoChecks.Warning.BooleanDataAttrCoalescesNil, []},
-             {Rbtz.CredoChecks.Warning.DisableMigrationLock, []},
-             {Rbtz.CredoChecks.Warning.EnumEachInHeex, []},
-             {Rbtz.CredoChecks.Warning.LiveViewFormCanBeRehydrated, []},
-             {Rbtz.CredoChecks.Warning.PhxClickAwayWithoutId, []},
-             {Rbtz.CredoChecks.Warning.PhxHookComponentWithoutStableId, []},
-             {Rbtz.CredoChecks.Warning.PhxHookWithoutId, []},
-             {Rbtz.CredoChecks.Warning.PhxUpdateStreamWithoutId, []},
-             {Rbtz.CredoChecks.Warning.PreferGetFieldOnChangeset, []},
-             {Rbtz.CredoChecks.Warning.PushEventSocketBinding, []},
-             {Rbtz.CredoChecks.Warning.ReqTestWithoutVerifyOnExit, []},
-             {Rbtz.CredoChecks.Warning.SetMimicGlobal, []},
-             {Rbtz.CredoChecks.Warning.SortKeywordValidateResult, []},
-             {Rbtz.CredoChecks.Warning.StringInterpolationInClassAttr, []},
-             {Rbtz.CredoChecks.Warning.UnnamedOtpProcess, []}
-           ]
+           enabled:
+             [
+               # ...your Credo built-in checks...
+             ] ++ Rbtz.CredoChecks.all()
          }
        }
      ]
    }
    ```
+
+### Customising and disabling checks
+
+Use `Rbtz.CredoChecks.all_replacing/1` with a list of `{module, opts}` replacements. Each is
+matched by module name and replaces that check's options, leaving every other check untouched.
+
+To **customise a check's options**, pass a keyword list:
+
+```elixir
+Rbtz.CredoChecks.all_replacing([
+  {Rbtz.CredoChecks.Readability.SnakeCaseVariableNumbering, exclude: ["utf8", "ipv4", "ipv6"]}
+])
+```
+
+To **disable a check**, pass `false` as its options — Credo treats `{check, false}` as
+disabled, so the check stays in the list but is turned off:
+
+```elixir
+Rbtz.CredoChecks.all_replacing([
+  {Rbtz.CredoChecks.Design.PreferLogsterInLib, false}
+])
+```
+
+You can combine both, and replacements naming a module that isn't one of these checks raise
+an `ArgumentError`, so typos surface immediately:
+
+```elixir
+enabled:
+  [
+    # ...your Credo built-in checks...
+  ] ++
+    Rbtz.CredoChecks.all_replacing([
+      {Rbtz.CredoChecks.Readability.SnakeCaseVariableNumbering, exclude: ["utf8", "ipv4", "ipv6"]},
+      {Rbtz.CredoChecks.Design.PreferLogsterInLib, false}
+    ])
+```
+
+### Enabling checks individually
+
+If you'd rather not enable everything, you can skip the helpers and list the checks by hand
+in your `enabled:` list. This is the full set `Rbtz.CredoChecks.all/0` returns — drop any you
+don't want, and add a second tuple element to customise a check (or `false` to disable it):
+
+```elixir
+enabled:
+  [
+    # ...your Credo built-in checks...
+
+    {Rbtz.CredoChecks.Design.BareScriptInHeex, []},
+    {Rbtz.CredoChecks.Design.CnInClassList, []},
+    {Rbtz.CredoChecks.Design.CustomAliasInRouterScope, []},
+    {Rbtz.CredoChecks.Design.PreferLogsterInLib, []},
+    {Rbtz.CredoChecks.Design.RawHtmlElementsInHeex, []},
+    {Rbtz.CredoChecks.Design.RawSvgInHeex, []},
+    {Rbtz.CredoChecks.Readability.AtomHttpStatusCodes, []},
+    {Rbtz.CredoChecks.Readability.AwkwardPipe, []},
+    {Rbtz.CredoChecks.Readability.ClassAttrFormatting, []},
+    {Rbtz.CredoChecks.Readability.LiveViewCallbackOrder, []},
+    {Rbtz.CredoChecks.Readability.ModuleAttrCollectionFormatting, []},
+    {Rbtz.CredoChecks.Readability.PreferBlockFormForMultilineIf, []},
+    {Rbtz.CredoChecks.Readability.PreferBooleanDataAttrShorthand, []},
+    {Rbtz.CredoChecks.Readability.PreferCapture, []},
+    {Rbtz.CredoChecks.Readability.PreferNilEquality, []},
+    {Rbtz.CredoChecks.Readability.PreferSigilSForEscapedQuotes, []},
+    {Rbtz.CredoChecks.Readability.PreferToTimeout, []},
+    {Rbtz.CredoChecks.Readability.RedundantClassAttrWrapping, []},
+    {Rbtz.CredoChecks.Readability.ShorthandDefMustBeCompact, []},
+    {Rbtz.CredoChecks.Readability.SnakeCaseVariableNumbering, []},
+    {Rbtz.CredoChecks.Readability.TopLevelAliasImportRequire, []},
+    {Rbtz.CredoChecks.Refactor.PreferEctoMigrationHelper, []},
+    {Rbtz.CredoChecks.Refactor.PreferForAttrOverForBlock, []},
+    {Rbtz.CredoChecks.Refactor.PreferTextColumns, []},
+    {Rbtz.CredoChecks.Refactor.PreferToFormInTemplates, []},
+    {Rbtz.CredoChecks.Refactor.RawHtmlMatchInLiveViewTests, []},
+    {Rbtz.CredoChecks.Refactor.RedundantThen, []},
+    {Rbtz.CredoChecks.Warning.AssertNonEmptyBeforeIterate, []},
+    {Rbtz.CredoChecks.Warning.BooleanDataAttrCoalescesNil, []},
+    {Rbtz.CredoChecks.Warning.DisableMigrationLock, []},
+    {Rbtz.CredoChecks.Warning.EnumEachInHeex, []},
+    {Rbtz.CredoChecks.Warning.LiveViewFormCanBeRehydrated, []},
+    {Rbtz.CredoChecks.Warning.PhxClickAwayWithoutId, []},
+    {Rbtz.CredoChecks.Warning.PhxHookComponentWithoutStableId, []},
+    {Rbtz.CredoChecks.Warning.PhxHookWithoutId, []},
+    {Rbtz.CredoChecks.Warning.PhxUpdateStreamWithoutId, []},
+    {Rbtz.CredoChecks.Warning.PreferGetFieldOnChangeset, []},
+    {Rbtz.CredoChecks.Warning.PushEventSocketBinding, []},
+    {Rbtz.CredoChecks.Warning.ReqTestWithoutVerifyOnExit, []},
+    {Rbtz.CredoChecks.Warning.SetMimicGlobal, []},
+    {Rbtz.CredoChecks.Warning.SortKeywordValidateResult, []},
+    {Rbtz.CredoChecks.Warning.StringInterpolationInClassAttr, []},
+    {Rbtz.CredoChecks.Warning.UnnamedOtpProcess, []}
+  ]
+```
 
 ## License
 
