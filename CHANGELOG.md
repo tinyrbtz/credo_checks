@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## Unreleased
+## 0.7.1
 
 - **`AtomHttpStatusCodes`**: now also flags integer status codes passed to the
   `Phoenix.ConnTest` assertion helpers `response/2`, `json_response/2`,
