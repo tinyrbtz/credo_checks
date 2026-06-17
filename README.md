@@ -25,7 +25,7 @@ them is `Rbtz.CredoChecks.all/0` — see [Installation and configuration](#insta
 
 ### Readability
 
-- `Rbtz.CredoChecks.Readability.AtomHttpStatusCodes`: Forbids passing integer HTTP status codes to `Plug.Conn` / Phoenix — use atoms like `:not_found`.
+- `Rbtz.CredoChecks.Readability.AtomHttpStatusCodes`: Forbids passing integer HTTP status codes to `Plug.Conn` / Phoenix controllers and `Phoenix.ConnTest` assertion helpers (`json_response`, `html_response`, `response`, `redirected_to`) — use atoms like `:not_found`.
 - `Rbtz.CredoChecks.Readability.AwkwardPipe`: Flags pipe usages that hurt readability without giving chaining benefit — pipe on either side of `&&` / `||` / `++` / `<>` / `in` / `and` / `or`, pipes into any `Kernel.` operator form (e.g. `Kernel.&&` / `Kernel.||` / `Kernel.+` / `Kernel.-` / `Kernel.==` / `Kernel.<` / `Kernel.in`), single-step pipes in tuple literals / string interpolation / non-first arg positions / single-line lambdas, any pipe joined in an `if` / `unless` / `cond` condition, single-step pipes on the RHS of `<-` inside HEEx `:for=` / `for` comprehensions, and single-step pipes wrapped in parens just to dot-access their result.
 - `Rbtz.CredoChecks.Readability.ClassAttrFormatting`: Enforces HEEx `class={...}` attributes use list syntax for multiple values, and flags any class-attribute line — single-line or inside a multi-line list — that exceeds `:max_line_length` (default 98).
 - `Rbtz.CredoChecks.Readability.LiveViewCallbackOrder`: Enforces the canonical callback order in `Phoenix.LiveView` modules: `mount` → `handle_params` → `handle_event` → `handle_info` → `handle_async` → helpers → `render`.

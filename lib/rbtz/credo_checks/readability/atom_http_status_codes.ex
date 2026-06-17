@@ -5,29 +5,33 @@ defmodule Rbtz.CredoChecks.Readability.AtomHttpStatusCodes do
     category: :readability,
     explanations: [
       check: """
-      Forbids passing integer HTTP status codes to `Plug.Conn` and Phoenix
-      controller helpers; use the corresponding atoms instead.
+      Forbids passing integer HTTP status codes to `Plug.Conn`, Phoenix
+      controller, and `Phoenix.ConnTest` helpers; use the corresponding atoms
+      instead.
 
       Atoms (`:ok`, `:not_found`, `:unprocessable_entity`, ...) read more
       naturally than three-digit numbers, surface typos at compile time, and
-      work uniformly across all `Plug.Conn` helpers.
+      work uniformly across all these helpers.
 
       The check fires when a literal integer in the 100-599 range is passed
-      as the status argument to `send_resp/3`, `put_status/2`, or `resp/3`
-      (whether called directly or via `|>`, locally or as `Plug.Conn` /
-      `Phoenix.Controller` remote calls).
+      as the status argument to `send_resp/3`, `put_status/2`, `resp/3`, or the
+      `Phoenix.ConnTest` assertion helpers `response/2`, `json_response/2`,
+      `html_response/2`, and `redirected_to/2` (whether called directly or via
+      `|>`, locally or as remote calls).
 
       # Bad
 
           put_status(conn, 404)
           send_resp(conn, 200, body)
           Plug.Conn.resp(conn, 500, "oops")
+          conn |> json_response(200)
 
       # Good
 
           put_status(conn, :not_found)
           send_resp(conn, :ok, body)
           Plug.Conn.resp(conn, :internal_server_error, "oops")
+          conn |> json_response(:ok)
       """
     ]
 
@@ -35,7 +39,11 @@ defmodule Rbtz.CredoChecks.Readability.AtomHttpStatusCodes do
   @status_arg_position %{
     send_resp: 1,
     put_status: 1,
-    resp: 1
+    resp: 1,
+    response: 1,
+    json_response: 1,
+    html_response: 1,
+    redirected_to: 1
   }
 
   @doc false
@@ -112,7 +120,7 @@ defmodule Rbtz.CredoChecks.Readability.AtomHttpStatusCodes do
     format_issue(ctx,
       message:
         "Use an atom status code instead of `#{status}` in `#{fname}`. " <>
-          "Plug accepts atoms like `:ok`, `:not_found`, `:internal_server_error`.",
+          "Atoms like `:ok`, `:not_found`, `:internal_server_error` are accepted and read more clearly.",
       trigger: to_string(fname),
       line_no: meta[:line]
     )

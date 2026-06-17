@@ -66,12 +66,107 @@ defmodule Rbtz.CredoChecks.Readability.AtomHttpStatusCodesTest do
     |> assert_issue()
   end
 
+  test "flags piped `json_response(200)`" do
+    """
+    defmodule MyControllerTest do
+      test "status" do
+        conn
+        |> get(~p"/status")
+        |> json_response(200)
+      end
+    end
+    """
+    |> to_source_file()
+    |> run_check(AtomHttpStatusCodes)
+    |> assert_issue()
+  end
+
+  test "flags `json_response(conn, 200)`" do
+    """
+    defmodule MyControllerTest do
+      test "status" do
+        json_response(conn, 200)
+      end
+    end
+    """
+    |> to_source_file()
+    |> run_check(AtomHttpStatusCodes)
+    |> assert_issue()
+  end
+
+  test "flags `json_response` nested in an assert" do
+    """
+    defmodule MyControllerTest do
+      test "status" do
+        assert json_response(conn, 200) == %{}
+      end
+    end
+    """
+    |> to_source_file()
+    |> run_check(AtomHttpStatusCodes)
+    |> assert_issue()
+  end
+
+  test "flags `html_response(conn, 200)`" do
+    """
+    defmodule MyControllerTest do
+      test "status" do
+        html_response(conn, 200)
+      end
+    end
+    """
+    |> to_source_file()
+    |> run_check(AtomHttpStatusCodes)
+    |> assert_issue()
+  end
+
+  test "flags `response(conn, 200)`" do
+    """
+    defmodule MyControllerTest do
+      test "status" do
+        response(conn, 200)
+      end
+    end
+    """
+    |> to_source_file()
+    |> run_check(AtomHttpStatusCodes)
+    |> assert_issue()
+  end
+
+  test "flags `redirected_to(conn, 302)`" do
+    """
+    defmodule MyControllerTest do
+      test "redirect" do
+        redirected_to(conn, 302)
+      end
+    end
+    """
+    |> to_source_file()
+    |> run_check(AtomHttpStatusCodes)
+    |> assert_issue()
+  end
+
   test "does not flag atom status codes" do
     """
     defmodule MyController do
       def show(conn, body) do
         conn |> put_status(:not_found)
         send_resp(conn, :ok, body)
+        json_response(conn, :ok)
+        redirected_to(conn, :found)
+      end
+    end
+    """
+    |> to_source_file()
+    |> run_check(AtomHttpStatusCodes)
+    |> refute_issues()
+  end
+
+  test "does not flag `redirected_to(conn)` with no status arg" do
+    """
+    defmodule MyControllerTest do
+      test "redirect" do
+        redirected_to(conn)
       end
     end
     """

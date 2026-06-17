@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## Unreleased
+
+- **`AtomHttpStatusCodes`**: now also flags integer status codes passed to the
+  `Phoenix.ConnTest` assertion helpers `response/2`, `json_response/2`,
+  `html_response/2`, and `redirected_to/2` (e.g. `json_response(conn, 200)` →
+  `json_response(conn, :ok)`).
+
 ## 0.7.0
 
 - **New** `Rbtz.CredoChecks.all/0` — returns every check in this library as a
