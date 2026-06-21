@@ -47,6 +47,7 @@ them is `Rbtz.CredoChecks.all/0` — see [Installation and configuration](#insta
 - `Rbtz.CredoChecks.Refactor.PreferForAttrOverForBlock`: Prefers `:for={item <- @collection}` directly on an element over a `<%= for ... do %>` EEx block when the block wraps a single element.
 - `Rbtz.CredoChecks.Refactor.PreferTextColumns`: Ensures Ecto migrations use `:text` rather than `:string` for column types.
 - `Rbtz.CredoChecks.Refactor.PreferToFormInTemplates`: Forbids passing a raw `@changeset` to a `<form>` / `<.form>` in HEEx — wrap with `to_form/2` and pass `@form` instead.
+- `Rbtz.CredoChecks.Refactor.PreferWithOverCase`: Flags a two-clause `case` whose only non-happy-path clause re-returns the value it matched unchanged (e.g. `{:error, reason} -> {:error, reason}`) — a `with` expresses this more directly via its implicit pass-through `else`.
 - `Rbtz.CredoChecks.Refactor.RawHtmlMatchInLiveViewTests`: Forbids `=~` matches against string literals in LiveView test files.
 - `Rbtz.CredoChecks.Refactor.RedundantThen`: Flags unnecessary uses of `Kernel.then/2` — when the function passed to `then/2` is a simple pass-through or partial application where the piped value already lands at the first-arg position, `then/2` is pure indirection and can be removed.
 
@@ -175,6 +176,7 @@ enabled:
     {Rbtz.CredoChecks.Refactor.PreferForAttrOverForBlock, []},
     {Rbtz.CredoChecks.Refactor.PreferTextColumns, []},
     {Rbtz.CredoChecks.Refactor.PreferToFormInTemplates, []},
+    {Rbtz.CredoChecks.Refactor.PreferWithOverCase, []},
     {Rbtz.CredoChecks.Refactor.RawHtmlMatchInLiveViewTests, []},
     {Rbtz.CredoChecks.Refactor.RedundantThen, []},
     {Rbtz.CredoChecks.Warning.AssertNonEmptyBeforeIterate, []},

@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## Unreleased
+
+- **New check** `Rbtz.CredoChecks.Refactor.PreferWithOverCase` — flags a
+  two-clause `case` whose only non-happy-path clause re-returns the value it
+  matched, unchanged (e.g. `{:error, reason} -> {:error, reason}`, or
+  `other -> other`). A `with` expresses this more directly, since its implicit
+  `else` passes the non-matching value through. Only this shape is flagged;
+  guarded clauses, a catch-all happy path paired with a specific pass-through
+  (order-sensitive), identity cases, and `case`s with one or three-plus clauses
+  are left alone.
+
 ## 0.7.1
 
 - **`AtomHttpStatusCodes`**: now also flags integer status codes passed to the
