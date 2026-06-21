@@ -7,9 +7,9 @@ defmodule Rbtz.CredoChecks.Readability.PreferBooleanDataAttrShorthandTest do
     assert PreferBooleanDataAttrShorthand.id() |> is_binary()
     assert PreferBooleanDataAttrShorthand.category() |> is_atom()
     assert PreferBooleanDataAttrShorthand.base_priority() |> is_atom()
-    assert PreferBooleanDataAttrShorthand.explanation() |> is_binary()
-    assert PreferBooleanDataAttrShorthand.params_defaults() |> is_list()
-    assert PreferBooleanDataAttrShorthand.params_names() |> is_list()
+    assert PreferBooleanDataAttrShorthand.explanations()[:check] |> is_binary()
+    assert PreferBooleanDataAttrShorthand.param_defaults() |> is_list()
+    assert PreferBooleanDataAttrShorthand.param_names() |> is_list()
   end
 
   test "flags `data-[disabled]:` in class list" do

@@ -7,9 +7,9 @@ defmodule Rbtz.CredoChecks.Warning.PhxHookWithoutIdTest do
     assert PhxHookWithoutId.id() |> is_binary()
     assert PhxHookWithoutId.category() |> is_atom()
     assert PhxHookWithoutId.base_priority() |> is_atom()
-    assert PhxHookWithoutId.explanation() |> is_binary()
-    assert PhxHookWithoutId.params_defaults() |> is_list()
-    assert PhxHookWithoutId.params_names() |> is_list()
+    assert PhxHookWithoutId.explanations()[:check] |> is_binary()
+    assert PhxHookWithoutId.param_defaults() |> is_list()
+    assert PhxHookWithoutId.param_names() |> is_list()
   end
 
   test "flags `<div phx-hook=...>` without `id`" do

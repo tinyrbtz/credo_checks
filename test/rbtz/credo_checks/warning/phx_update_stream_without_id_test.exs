@@ -7,9 +7,9 @@ defmodule Rbtz.CredoChecks.Warning.PhxUpdateStreamWithoutIdTest do
     assert PhxUpdateStreamWithoutId.id() |> is_binary()
     assert PhxUpdateStreamWithoutId.category() |> is_atom()
     assert PhxUpdateStreamWithoutId.base_priority() |> is_atom()
-    assert PhxUpdateStreamWithoutId.explanation() |> is_binary()
-    assert PhxUpdateStreamWithoutId.params_defaults() |> is_list()
-    assert PhxUpdateStreamWithoutId.params_names() |> is_list()
+    assert PhxUpdateStreamWithoutId.explanations()[:check] |> is_binary()
+    assert PhxUpdateStreamWithoutId.param_defaults() |> is_list()
+    assert PhxUpdateStreamWithoutId.param_names() |> is_list()
   end
 
   test ~s(flags `<div phx-update="stream">` without id) do

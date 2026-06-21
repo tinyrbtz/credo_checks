@@ -7,9 +7,9 @@ defmodule Rbtz.CredoChecks.Readability.PreferNilEqualityTest do
     assert PreferNilEquality.id() |> is_binary()
     assert PreferNilEquality.category() |> is_atom()
     assert PreferNilEquality.base_priority() |> is_atom()
-    assert PreferNilEquality.explanation() |> is_binary()
-    assert PreferNilEquality.params_defaults() |> is_list()
-    assert PreferNilEquality.params_names() |> is_list()
+    assert PreferNilEquality.explanations()[:check] |> is_binary()
+    assert PreferNilEquality.param_defaults() |> is_list()
+    assert PreferNilEquality.param_names() |> is_list()
   end
 
   describe "if / unless conditions" do

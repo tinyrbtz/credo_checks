@@ -7,9 +7,9 @@ defmodule Rbtz.CredoChecks.Warning.SortKeywordValidateResultTest do
     assert SortKeywordValidateResult.id() |> is_binary()
     assert SortKeywordValidateResult.category() |> is_atom()
     assert SortKeywordValidateResult.base_priority() |> is_atom()
-    assert SortKeywordValidateResult.explanation() |> is_binary()
-    assert SortKeywordValidateResult.params_defaults() |> is_list()
-    assert SortKeywordValidateResult.params_names() |> is_list()
+    assert SortKeywordValidateResult.explanations()[:check] |> is_binary()
+    assert SortKeywordValidateResult.param_defaults() |> is_list()
+    assert SortKeywordValidateResult.param_names() |> is_list()
   end
 
   test "flags `[a: a, b: b] = Keyword.validate!(opts, defs)`" do

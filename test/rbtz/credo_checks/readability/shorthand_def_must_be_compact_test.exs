@@ -7,9 +7,9 @@ defmodule Rbtz.CredoChecks.Readability.ShorthandDefMustBeCompactTest do
     assert ShorthandDefMustBeCompact.id() |> is_binary()
     assert ShorthandDefMustBeCompact.category() |> is_atom()
     assert ShorthandDefMustBeCompact.base_priority() |> is_atom()
-    assert ShorthandDefMustBeCompact.explanation() |> is_binary()
-    assert ShorthandDefMustBeCompact.params_defaults() |> is_list()
-    assert ShorthandDefMustBeCompact.params_names() |> is_list()
+    assert ShorthandDefMustBeCompact.explanations()[:check] |> is_binary()
+    assert ShorthandDefMustBeCompact.param_defaults() |> is_list()
+    assert ShorthandDefMustBeCompact.param_names() |> is_list()
   end
 
   test "does not flag a one-line shorthand def" do

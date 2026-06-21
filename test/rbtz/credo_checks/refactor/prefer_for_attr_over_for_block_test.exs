@@ -7,9 +7,9 @@ defmodule Rbtz.CredoChecks.Refactor.PreferForAttrOverForBlockTest do
     assert PreferForAttrOverForBlock.id() |> is_binary()
     assert PreferForAttrOverForBlock.category() |> is_atom()
     assert PreferForAttrOverForBlock.base_priority() |> is_atom()
-    assert PreferForAttrOverForBlock.explanation() |> is_binary()
-    assert PreferForAttrOverForBlock.params_defaults() |> is_list()
-    assert PreferForAttrOverForBlock.params_names() |> is_list()
+    assert PreferForAttrOverForBlock.explanations()[:check] |> is_binary()
+    assert PreferForAttrOverForBlock.param_defaults() |> is_list()
+    assert PreferForAttrOverForBlock.param_names() |> is_list()
   end
 
   test "flags a `<%= for %>` block wrapping a single element" do

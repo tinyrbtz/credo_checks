@@ -7,9 +7,9 @@ defmodule Rbtz.CredoChecks.Warning.PreferGetFieldOnChangesetTest do
     assert PreferGetFieldOnChangeset.id() |> is_binary()
     assert PreferGetFieldOnChangeset.category() |> is_atom()
     assert PreferGetFieldOnChangeset.base_priority() |> is_atom()
-    assert PreferGetFieldOnChangeset.explanation() |> is_binary()
-    assert PreferGetFieldOnChangeset.params_defaults() |> is_list()
-    assert PreferGetFieldOnChangeset.params_names() |> is_list()
+    assert PreferGetFieldOnChangeset.explanations()[:check] |> is_binary()
+    assert PreferGetFieldOnChangeset.param_defaults() |> is_list()
+    assert PreferGetFieldOnChangeset.param_names() |> is_list()
   end
 
   test "flags `changeset.field`" do

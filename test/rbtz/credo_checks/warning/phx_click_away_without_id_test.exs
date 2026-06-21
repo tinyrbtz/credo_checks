@@ -7,9 +7,9 @@ defmodule Rbtz.CredoChecks.Warning.PhxClickAwayWithoutIdTest do
     assert PhxClickAwayWithoutId.id() |> is_binary()
     assert PhxClickAwayWithoutId.category() |> is_atom()
     assert PhxClickAwayWithoutId.base_priority() |> is_atom()
-    assert PhxClickAwayWithoutId.explanation() |> is_binary()
-    assert PhxClickAwayWithoutId.params_defaults() |> is_list()
-    assert PhxClickAwayWithoutId.params_names() |> is_list()
+    assert PhxClickAwayWithoutId.explanations()[:check] |> is_binary()
+    assert PhxClickAwayWithoutId.param_defaults() |> is_list()
+    assert PhxClickAwayWithoutId.param_names() |> is_list()
   end
 
   test "flags `<div phx-click-away=...>` without `id`" do

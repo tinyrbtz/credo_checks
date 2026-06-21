@@ -7,9 +7,9 @@ defmodule Rbtz.CredoChecks.Warning.EnumEachInHeexTest do
     assert EnumEachInHeex.id() |> is_binary()
     assert EnumEachInHeex.category() |> is_atom()
     assert EnumEachInHeex.base_priority() |> is_atom()
-    assert EnumEachInHeex.explanation() |> is_binary()
-    assert EnumEachInHeex.params_defaults() |> is_list()
-    assert EnumEachInHeex.params_names() |> is_list()
+    assert EnumEachInHeex.explanations()[:check] |> is_binary()
+    assert EnumEachInHeex.param_defaults() |> is_list()
+    assert EnumEachInHeex.param_names() |> is_list()
   end
 
   test "flags `<% Enum.each %>`" do

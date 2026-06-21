@@ -7,9 +7,9 @@ defmodule Rbtz.CredoChecks.Design.BareScriptInHeexTest do
     assert BareScriptInHeex.id() |> is_binary()
     assert BareScriptInHeex.category() |> is_atom()
     assert BareScriptInHeex.base_priority() |> is_atom()
-    assert BareScriptInHeex.explanation() |> is_binary()
-    assert BareScriptInHeex.params_defaults() |> is_list()
-    assert BareScriptInHeex.params_names() |> is_list()
+    assert BareScriptInHeex.explanations()[:check] |> is_binary()
+    assert BareScriptInHeex.param_defaults() |> is_list()
+    assert BareScriptInHeex.param_names() |> is_list()
   end
 
   test "flags raw `<script>`" do

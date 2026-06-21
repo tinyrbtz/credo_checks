@@ -7,9 +7,9 @@ defmodule Rbtz.CredoChecks.Design.RawHtmlElementsInHeexTest do
     assert RawHtmlElementsInHeex.id() |> is_binary()
     assert RawHtmlElementsInHeex.category() |> is_atom()
     assert RawHtmlElementsInHeex.base_priority() |> is_atom()
-    assert RawHtmlElementsInHeex.explanation() |> is_binary()
-    assert RawHtmlElementsInHeex.params_defaults() |> is_list()
-    assert RawHtmlElementsInHeex.params_names() |> is_list()
+    assert RawHtmlElementsInHeex.explanations()[:check] |> is_binary()
+    assert RawHtmlElementsInHeex.param_defaults() |> is_list()
+    assert RawHtmlElementsInHeex.param_names() |> is_list()
   end
 
   test "flags raw `<button>`" do

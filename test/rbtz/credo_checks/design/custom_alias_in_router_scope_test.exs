@@ -7,9 +7,9 @@ defmodule Rbtz.CredoChecks.Design.CustomAliasInRouterScopeTest do
     assert CustomAliasInRouterScope.id() |> is_binary()
     assert CustomAliasInRouterScope.category() |> is_atom()
     assert CustomAliasInRouterScope.base_priority() |> is_atom()
-    assert CustomAliasInRouterScope.explanation() |> is_binary()
-    assert CustomAliasInRouterScope.params_defaults() |> is_list()
-    assert CustomAliasInRouterScope.params_names() |> is_list()
+    assert CustomAliasInRouterScope.explanations()[:check] |> is_binary()
+    assert CustomAliasInRouterScope.param_defaults() |> is_list()
+    assert CustomAliasInRouterScope.param_names() |> is_list()
   end
 
   test "flags `alias` inside `scope` block" do

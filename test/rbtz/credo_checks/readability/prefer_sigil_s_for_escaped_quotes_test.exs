@@ -7,9 +7,9 @@ defmodule Rbtz.CredoChecks.Readability.PreferSigilSForEscapedQuotesTest do
     assert PreferSigilSForEscapedQuotes.id() |> is_binary()
     assert PreferSigilSForEscapedQuotes.category() |> is_atom()
     assert PreferSigilSForEscapedQuotes.base_priority() |> is_atom()
-    assert PreferSigilSForEscapedQuotes.explanation() |> is_binary()
-    assert PreferSigilSForEscapedQuotes.params_defaults() |> is_list()
-    assert PreferSigilSForEscapedQuotes.params_names() |> is_list()
+    assert PreferSigilSForEscapedQuotes.explanations()[:check] |> is_binary()
+    assert PreferSigilSForEscapedQuotes.param_defaults() |> is_list()
+    assert PreferSigilSForEscapedQuotes.param_names() |> is_list()
   end
 
   test "flags a double-quoted string with escaped quotes" do

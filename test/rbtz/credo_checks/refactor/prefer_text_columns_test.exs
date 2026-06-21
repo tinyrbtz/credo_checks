@@ -7,9 +7,9 @@ defmodule Rbtz.CredoChecks.Refactor.PreferTextColumnsTest do
     assert PreferTextColumns.id() |> is_binary()
     assert PreferTextColumns.category() |> is_atom()
     assert PreferTextColumns.base_priority() |> is_atom()
-    assert PreferTextColumns.explanation() |> is_binary()
-    assert PreferTextColumns.params_defaults() |> is_list()
-    assert PreferTextColumns.params_names() |> is_list()
+    assert PreferTextColumns.explanations()[:check] |> is_binary()
+    assert PreferTextColumns.param_defaults() |> is_list()
+    assert PreferTextColumns.param_names() |> is_list()
   end
 
   test "flags `add :col, :string`" do

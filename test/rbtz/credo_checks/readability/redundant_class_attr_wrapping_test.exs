@@ -7,9 +7,9 @@ defmodule Rbtz.CredoChecks.Readability.RedundantClassAttrWrappingTest do
     assert RedundantClassAttrWrapping.id() |> is_binary()
     assert RedundantClassAttrWrapping.category() |> is_atom()
     assert RedundantClassAttrWrapping.base_priority() |> is_atom()
-    assert RedundantClassAttrWrapping.explanation() |> is_binary()
-    assert RedundantClassAttrWrapping.params_defaults() |> is_list()
-    assert RedundantClassAttrWrapping.params_names() |> is_list()
+    assert RedundantClassAttrWrapping.explanations()[:check] |> is_binary()
+    assert RedundantClassAttrWrapping.param_defaults() |> is_list()
+    assert RedundantClassAttrWrapping.param_names() |> is_list()
   end
 
   describe "bare static string" do

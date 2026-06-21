@@ -7,9 +7,9 @@ defmodule Rbtz.CredoChecks.Warning.PushEventSocketBindingTest do
     assert PushEventSocketBinding.id() |> is_binary()
     assert PushEventSocketBinding.category() |> is_atom()
     assert PushEventSocketBinding.base_priority() |> is_atom()
-    assert PushEventSocketBinding.explanation() |> is_binary()
-    assert PushEventSocketBinding.params_defaults() |> is_list()
-    assert PushEventSocketBinding.params_names() |> is_list()
+    assert PushEventSocketBinding.explanations()[:check] |> is_binary()
+    assert PushEventSocketBinding.param_defaults() |> is_list()
+    assert PushEventSocketBinding.param_names() |> is_list()
   end
 
   test "flags `push_event/3` as discarded statement" do

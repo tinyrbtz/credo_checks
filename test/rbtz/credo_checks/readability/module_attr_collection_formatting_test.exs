@@ -7,9 +7,9 @@ defmodule Rbtz.CredoChecks.Readability.ModuleAttrCollectionFormattingTest do
     assert ModuleAttrCollectionFormatting.id() |> is_binary()
     assert ModuleAttrCollectionFormatting.category() |> is_atom()
     assert ModuleAttrCollectionFormatting.base_priority() |> is_atom()
-    assert ModuleAttrCollectionFormatting.explanation() |> is_binary()
-    assert ModuleAttrCollectionFormatting.params_defaults() |> is_list()
-    assert ModuleAttrCollectionFormatting.params_names() |> is_list()
+    assert ModuleAttrCollectionFormatting.explanations()[:check] |> is_binary()
+    assert ModuleAttrCollectionFormatting.param_defaults() |> is_list()
+    assert ModuleAttrCollectionFormatting.param_names() |> is_list()
   end
 
   describe "flags multi-line collections with multiple items on a line" do

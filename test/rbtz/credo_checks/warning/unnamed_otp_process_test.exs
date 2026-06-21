@@ -7,9 +7,9 @@ defmodule Rbtz.CredoChecks.Warning.UnnamedOtpProcessTest do
     assert UnnamedOtpProcess.id() |> is_binary()
     assert UnnamedOtpProcess.category() |> is_atom()
     assert UnnamedOtpProcess.base_priority() |> is_atom()
-    assert UnnamedOtpProcess.explanation() |> is_binary()
-    assert UnnamedOtpProcess.params_defaults() |> is_list()
-    assert UnnamedOtpProcess.params_names() |> is_list()
+    assert UnnamedOtpProcess.explanations()[:check] |> is_binary()
+    assert UnnamedOtpProcess.param_defaults() |> is_list()
+    assert UnnamedOtpProcess.param_names() |> is_list()
   end
 
   test "flags bare `DynamicSupervisor`" do

@@ -7,9 +7,9 @@ defmodule Rbtz.CredoChecks.Readability.LiveViewCallbackOrderTest do
     assert LiveViewCallbackOrder.id() |> is_binary()
     assert LiveViewCallbackOrder.category() |> is_atom()
     assert LiveViewCallbackOrder.base_priority() |> is_atom()
-    assert LiveViewCallbackOrder.explanation() |> is_binary()
-    assert LiveViewCallbackOrder.params_defaults() |> is_list()
-    assert LiveViewCallbackOrder.params_names() |> is_list()
+    assert LiveViewCallbackOrder.explanations()[:check] |> is_binary()
+    assert LiveViewCallbackOrder.param_defaults() |> is_list()
+    assert LiveViewCallbackOrder.param_names() |> is_list()
   end
 
   test "flags render before handle_event" do

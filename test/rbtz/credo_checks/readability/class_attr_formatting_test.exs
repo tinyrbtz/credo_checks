@@ -7,9 +7,9 @@ defmodule Rbtz.CredoChecks.Readability.ClassAttrFormattingTest do
     assert ClassAttrFormatting.id() |> is_binary()
     assert ClassAttrFormatting.category() |> is_atom()
     assert ClassAttrFormatting.base_priority() |> is_atom()
-    assert ClassAttrFormatting.explanation() |> is_binary()
-    assert ClassAttrFormatting.params_defaults() |> is_list()
-    assert ClassAttrFormatting.params_names() |> is_list()
+    assert ClassAttrFormatting.explanations()[:check] |> is_binary()
+    assert ClassAttrFormatting.param_defaults() |> is_list()
+    assert ClassAttrFormatting.param_names() |> is_list()
   end
 
   describe "missing brackets" do

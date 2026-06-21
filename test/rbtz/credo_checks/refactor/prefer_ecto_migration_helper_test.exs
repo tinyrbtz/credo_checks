@@ -7,9 +7,9 @@ defmodule Rbtz.CredoChecks.Refactor.PreferEctoMigrationHelperTest do
     assert PreferEctoMigrationHelper.id() |> is_binary()
     assert PreferEctoMigrationHelper.category() |> is_atom()
     assert PreferEctoMigrationHelper.base_priority() |> is_atom()
-    assert PreferEctoMigrationHelper.explanation() |> is_binary()
-    assert PreferEctoMigrationHelper.params_defaults() |> is_list()
-    assert PreferEctoMigrationHelper.params_names() |> is_list()
+    assert PreferEctoMigrationHelper.explanations()[:check] |> is_binary()
+    assert PreferEctoMigrationHelper.param_defaults() |> is_list()
+    assert PreferEctoMigrationHelper.param_names() |> is_list()
   end
 
   test ~s|flags raw `execute("ALTER TABLE ...")`| do

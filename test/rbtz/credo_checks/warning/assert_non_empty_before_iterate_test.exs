@@ -7,9 +7,9 @@ defmodule Rbtz.CredoChecks.Warning.AssertNonEmptyBeforeIterateTest do
     assert AssertNonEmptyBeforeIterate.id() |> is_binary()
     assert AssertNonEmptyBeforeIterate.category() |> is_atom()
     assert AssertNonEmptyBeforeIterate.base_priority() |> is_atom()
-    assert AssertNonEmptyBeforeIterate.explanation() |> is_binary()
-    assert AssertNonEmptyBeforeIterate.params_defaults() |> is_list()
-    assert AssertNonEmptyBeforeIterate.params_names() |> is_list()
+    assert AssertNonEmptyBeforeIterate.explanations()[:check] |> is_binary()
+    assert AssertNonEmptyBeforeIterate.param_defaults() |> is_list()
+    assert AssertNonEmptyBeforeIterate.param_names() |> is_list()
   end
 
   test "flags Enum.each with assert and no prior guard" do

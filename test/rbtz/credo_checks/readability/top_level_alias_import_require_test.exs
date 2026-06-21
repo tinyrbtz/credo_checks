@@ -7,9 +7,9 @@ defmodule Rbtz.CredoChecks.Readability.TopLevelAliasImportRequireTest do
     assert TopLevelAliasImportRequire.id() |> is_binary()
     assert TopLevelAliasImportRequire.category() |> is_atom()
     assert TopLevelAliasImportRequire.base_priority() |> is_atom()
-    assert TopLevelAliasImportRequire.explanation() |> is_binary()
-    assert TopLevelAliasImportRequire.params_defaults() |> is_list()
-    assert TopLevelAliasImportRequire.params_names() |> is_list()
+    assert TopLevelAliasImportRequire.explanations()[:check] |> is_binary()
+    assert TopLevelAliasImportRequire.param_defaults() |> is_list()
+    assert TopLevelAliasImportRequire.param_names() |> is_list()
   end
 
   test "flags `import` inside a function body" do

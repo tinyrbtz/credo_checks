@@ -7,9 +7,9 @@ defmodule Rbtz.CredoChecks.Readability.AtomHttpStatusCodesTest do
     assert AtomHttpStatusCodes.id() |> is_binary()
     assert AtomHttpStatusCodes.category() |> is_atom()
     assert AtomHttpStatusCodes.base_priority() |> is_atom()
-    assert AtomHttpStatusCodes.explanation() |> is_binary()
-    assert AtomHttpStatusCodes.params_defaults() |> is_list()
-    assert AtomHttpStatusCodes.params_names() |> is_list()
+    assert AtomHttpStatusCodes.explanations()[:check] |> is_binary()
+    assert AtomHttpStatusCodes.param_defaults() |> is_list()
+    assert AtomHttpStatusCodes.param_names() |> is_list()
   end
 
   test "flags `put_status(conn, 404)`" do

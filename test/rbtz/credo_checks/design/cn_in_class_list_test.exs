@@ -7,9 +7,9 @@ defmodule Rbtz.CredoChecks.Design.CnInClassListTest do
     assert CnInClassList.id() |> is_binary()
     assert CnInClassList.category() |> is_atom()
     assert CnInClassList.base_priority() |> is_atom()
-    assert CnInClassList.explanation() |> is_binary()
-    assert CnInClassList.params_defaults() |> is_list()
-    assert CnInClassList.params_names() |> is_list()
+    assert CnInClassList.explanations()[:check] |> is_binary()
+    assert CnInClassList.param_defaults() |> is_list()
+    assert CnInClassList.param_names() |> is_list()
   end
 
   describe "rule: cn(...) requires an assign" do

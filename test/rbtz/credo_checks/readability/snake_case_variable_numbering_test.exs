@@ -7,9 +7,9 @@ defmodule Rbtz.CredoChecks.Readability.SnakeCaseVariableNumberingTest do
     assert SnakeCaseVariableNumbering.id() |> is_binary()
     assert SnakeCaseVariableNumbering.category() |> is_atom()
     assert SnakeCaseVariableNumbering.base_priority() |> is_atom()
-    assert SnakeCaseVariableNumbering.explanation() |> is_binary()
-    assert SnakeCaseVariableNumbering.params_defaults() |> is_list()
-    assert SnakeCaseVariableNumbering.params_names() |> is_list()
+    assert SnakeCaseVariableNumbering.explanations()[:check] |> is_binary()
+    assert SnakeCaseVariableNumbering.param_defaults() |> is_list()
+    assert SnakeCaseVariableNumbering.param_names() |> is_list()
   end
 
   test "flags `user1`, `user2`" do

@@ -7,9 +7,9 @@ defmodule Rbtz.CredoChecks.Readability.PreferToTimeoutTest do
     assert PreferToTimeout.id() |> is_binary()
     assert PreferToTimeout.category() |> is_atom()
     assert PreferToTimeout.base_priority() |> is_atom()
-    assert PreferToTimeout.explanation() |> is_binary()
-    assert PreferToTimeout.params_defaults() |> is_list()
-    assert PreferToTimeout.params_names() |> is_list()
+    assert PreferToTimeout.explanations()[:check] |> is_binary()
+    assert PreferToTimeout.param_defaults() |> is_list()
+    assert PreferToTimeout.param_names() |> is_list()
   end
 
   test "flags `:timer.seconds/1`" do

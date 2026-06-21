@@ -12,9 +12,9 @@ defmodule Rbtz.CredoChecks.Refactor.RedundantThenTest do
     assert RedundantThen.id() |> is_binary()
     assert RedundantThen.category() |> is_atom()
     assert RedundantThen.base_priority() |> is_atom()
-    assert RedundantThen.explanation() |> is_binary()
-    assert RedundantThen.params_defaults() |> is_list()
-    assert RedundantThen.params_names() |> is_list()
+    assert RedundantThen.explanations()[:check] |> is_binary()
+    assert RedundantThen.param_defaults() |> is_list()
+    assert RedundantThen.param_names() |> is_list()
   end
 
   describe "flags piped form" do

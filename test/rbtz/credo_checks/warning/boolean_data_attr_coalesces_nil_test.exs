@@ -7,9 +7,9 @@ defmodule Rbtz.CredoChecks.Warning.BooleanDataAttrCoalescesNilTest do
     assert BooleanDataAttrCoalescesNil.id() |> is_binary()
     assert BooleanDataAttrCoalescesNil.category() |> is_atom()
     assert BooleanDataAttrCoalescesNil.base_priority() |> is_atom()
-    assert BooleanDataAttrCoalescesNil.explanation() |> is_binary()
-    assert BooleanDataAttrCoalescesNil.params_defaults() |> is_list()
-    assert BooleanDataAttrCoalescesNil.params_names() |> is_list()
+    assert BooleanDataAttrCoalescesNil.explanations()[:check] |> is_binary()
+    assert BooleanDataAttrCoalescesNil.param_defaults() |> is_list()
+    assert BooleanDataAttrCoalescesNil.param_names() |> is_list()
   end
 
   test "flags bare `@assign`" do

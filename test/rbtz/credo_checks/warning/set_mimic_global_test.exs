@@ -7,9 +7,9 @@ defmodule Rbtz.CredoChecks.Warning.SetMimicGlobalTest do
     assert SetMimicGlobal.id() |> is_binary()
     assert SetMimicGlobal.category() |> is_atom()
     assert SetMimicGlobal.base_priority() |> is_atom()
-    assert SetMimicGlobal.explanation() |> is_binary()
-    assert SetMimicGlobal.params_defaults() |> is_list()
-    assert SetMimicGlobal.params_names() |> is_list()
+    assert SetMimicGlobal.explanations()[:check] |> is_binary()
+    assert SetMimicGlobal.param_defaults() |> is_list()
+    assert SetMimicGlobal.param_names() |> is_list()
   end
 
   test "flags `setup :set_mimic_global`" do

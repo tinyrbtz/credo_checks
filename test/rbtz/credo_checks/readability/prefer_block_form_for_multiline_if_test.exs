@@ -12,9 +12,9 @@ defmodule Rbtz.CredoChecks.Readability.PreferBlockFormForMultilineIfTest do
     assert PreferBlockFormForMultilineIf.id() |> is_binary()
     assert PreferBlockFormForMultilineIf.category() |> is_atom()
     assert PreferBlockFormForMultilineIf.base_priority() |> is_atom()
-    assert PreferBlockFormForMultilineIf.explanation() |> is_binary()
-    assert PreferBlockFormForMultilineIf.params_defaults() |> is_list()
-    assert PreferBlockFormForMultilineIf.params_names() |> is_list()
+    assert PreferBlockFormForMultilineIf.explanations()[:check] |> is_binary()
+    assert PreferBlockFormForMultilineIf.param_defaults() |> is_list()
+    assert PreferBlockFormForMultilineIf.param_names() |> is_list()
   end
 
   describe "flags multiline keyword form" do

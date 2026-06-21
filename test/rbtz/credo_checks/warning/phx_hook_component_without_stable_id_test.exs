@@ -7,9 +7,9 @@ defmodule Rbtz.CredoChecks.Warning.PhxHookComponentWithoutStableIdTest do
     assert PhxHookComponentWithoutStableId.id() |> is_binary()
     assert PhxHookComponentWithoutStableId.category() |> is_atom()
     assert PhxHookComponentWithoutStableId.base_priority() |> is_atom()
-    assert PhxHookComponentWithoutStableId.explanation() |> is_binary()
-    assert PhxHookComponentWithoutStableId.params_defaults() |> is_list()
-    assert PhxHookComponentWithoutStableId.params_names() |> is_list()
+    assert PhxHookComponentWithoutStableId.explanations()[:check] |> is_binary()
+    assert PhxHookComponentWithoutStableId.param_defaults() |> is_list()
+    assert PhxHookComponentWithoutStableId.param_names() |> is_list()
   end
 
   test "flags component with phx-hook missing any stable id attr" do

@@ -7,9 +7,9 @@ defmodule Rbtz.CredoChecks.Refactor.PreferToFormInTemplatesTest do
     assert PreferToFormInTemplates.id() |> is_binary()
     assert PreferToFormInTemplates.category() |> is_atom()
     assert PreferToFormInTemplates.base_priority() |> is_atom()
-    assert PreferToFormInTemplates.explanation() |> is_binary()
-    assert PreferToFormInTemplates.params_defaults() |> is_list()
-    assert PreferToFormInTemplates.params_names() |> is_list()
+    assert PreferToFormInTemplates.explanations()[:check] |> is_binary()
+    assert PreferToFormInTemplates.param_defaults() |> is_list()
+    assert PreferToFormInTemplates.param_names() |> is_list()
   end
 
   test "flags `@changeset` on the form opening tag" do

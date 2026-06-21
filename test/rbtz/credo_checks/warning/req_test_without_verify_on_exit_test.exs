@@ -7,9 +7,9 @@ defmodule Rbtz.CredoChecks.Warning.ReqTestWithoutVerifyOnExitTest do
     assert ReqTestWithoutVerifyOnExit.id() |> is_binary()
     assert ReqTestWithoutVerifyOnExit.category() |> is_atom()
     assert ReqTestWithoutVerifyOnExit.base_priority() |> is_atom()
-    assert ReqTestWithoutVerifyOnExit.explanation() |> is_binary()
-    assert ReqTestWithoutVerifyOnExit.params_defaults() |> is_list()
-    assert ReqTestWithoutVerifyOnExit.params_names() |> is_list()
+    assert ReqTestWithoutVerifyOnExit.explanations()[:check] |> is_binary()
+    assert ReqTestWithoutVerifyOnExit.param_defaults() |> is_list()
+    assert ReqTestWithoutVerifyOnExit.param_names() |> is_list()
   end
 
   test "flags Req.Test.expect without verify_on_exit!" do

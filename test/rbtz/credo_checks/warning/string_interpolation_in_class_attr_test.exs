@@ -7,9 +7,9 @@ defmodule Rbtz.CredoChecks.Warning.StringInterpolationInClassAttrTest do
     assert StringInterpolationInClassAttr.id() |> is_binary()
     assert StringInterpolationInClassAttr.category() |> is_atom()
     assert StringInterpolationInClassAttr.base_priority() |> is_atom()
-    assert StringInterpolationInClassAttr.explanation() |> is_binary()
-    assert StringInterpolationInClassAttr.params_defaults() |> is_list()
-    assert StringInterpolationInClassAttr.params_names() |> is_list()
+    assert StringInterpolationInClassAttr.explanations()[:check] |> is_binary()
+    assert StringInterpolationInClassAttr.param_defaults() |> is_list()
+    assert StringInterpolationInClassAttr.param_names() |> is_list()
   end
 
   test ~S(flags `class={"btn-#{@variant}"}`) do

@@ -29,9 +29,9 @@ defmodule Rbtz.CredoChecks.Readability.AwkwardPipeTest do
     assert AwkwardPipe.id() |> is_binary()
     assert AwkwardPipe.category() == :readability
     assert AwkwardPipe.base_priority() |> is_atom()
-    assert AwkwardPipe.explanation() |> is_binary()
-    assert AwkwardPipe.params_defaults() |> is_list()
-    assert AwkwardPipe.params_names() |> is_list()
+    assert AwkwardPipe.explanations()[:check] |> is_binary()
+    assert AwkwardPipe.param_defaults() |> is_list()
+    assert AwkwardPipe.param_names() |> is_list()
   end
 
   test "returns no issues when source cannot be parsed" do

@@ -7,9 +7,9 @@ defmodule Rbtz.CredoChecks.Design.RawSvgInHeexTest do
     assert RawSvgInHeex.id() |> is_binary()
     assert RawSvgInHeex.category() |> is_atom()
     assert RawSvgInHeex.base_priority() |> is_atom()
-    assert RawSvgInHeex.explanation() |> is_binary()
-    assert RawSvgInHeex.params_defaults() |> is_list()
-    assert RawSvgInHeex.params_names() |> is_list()
+    assert RawSvgInHeex.explanations()[:check] |> is_binary()
+    assert RawSvgInHeex.param_defaults() |> is_list()
+    assert RawSvgInHeex.param_names() |> is_list()
   end
 
   test "flags raw `<svg>`" do

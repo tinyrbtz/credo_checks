@@ -12,9 +12,9 @@ defmodule Rbtz.CredoChecks.Readability.PreferCaptureTest do
     assert PreferCapture.id() |> is_binary()
     assert PreferCapture.category() |> is_atom()
     assert PreferCapture.base_priority() |> is_atom()
-    assert PreferCapture.explanation() |> is_binary()
-    assert PreferCapture.params_defaults() |> is_list()
-    assert PreferCapture.params_names() |> is_list()
+    assert PreferCapture.explanations()[:check] |> is_binary()
+    assert PreferCapture.param_defaults() |> is_list()
+    assert PreferCapture.param_names() |> is_list()
   end
 
   describe "band A — direct pass-through" do

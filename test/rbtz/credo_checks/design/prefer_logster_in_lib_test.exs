@@ -7,9 +7,9 @@ defmodule Rbtz.CredoChecks.Design.PreferLogsterInLibTest do
     assert PreferLogsterInLib.id() |> is_binary()
     assert PreferLogsterInLib.category() |> is_atom()
     assert PreferLogsterInLib.base_priority() |> is_atom()
-    assert PreferLogsterInLib.explanation() |> is_binary()
-    assert PreferLogsterInLib.params_defaults() |> is_list()
-    assert PreferLogsterInLib.params_names() |> is_list()
+    assert PreferLogsterInLib.explanations()[:check] |> is_binary()
+    assert PreferLogsterInLib.param_defaults() |> is_list()
+    assert PreferLogsterInLib.param_names() |> is_list()
   end
 
   test "flags `Logger.info` in lib/" do

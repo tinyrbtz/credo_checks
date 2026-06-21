@@ -7,9 +7,9 @@ defmodule Rbtz.CredoChecks.Warning.DisableMigrationLockTest do
     assert DisableMigrationLock.id() |> is_binary()
     assert DisableMigrationLock.category() |> is_atom()
     assert DisableMigrationLock.base_priority() |> is_atom()
-    assert DisableMigrationLock.explanation() |> is_binary()
-    assert DisableMigrationLock.params_defaults() |> is_list()
-    assert DisableMigrationLock.params_names() |> is_list()
+    assert DisableMigrationLock.explanations()[:check] |> is_binary()
+    assert DisableMigrationLock.param_defaults() |> is_list()
+    assert DisableMigrationLock.param_names() |> is_list()
   end
 
   test "flags `@disable_migration_lock true`" do

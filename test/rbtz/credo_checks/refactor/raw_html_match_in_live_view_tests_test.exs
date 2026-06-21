@@ -7,9 +7,9 @@ defmodule Rbtz.CredoChecks.Refactor.RawHtmlMatchInLiveViewTestsTest do
     assert RawHtmlMatchInLiveViewTests.id() |> is_binary()
     assert RawHtmlMatchInLiveViewTests.category() |> is_atom()
     assert RawHtmlMatchInLiveViewTests.base_priority() |> is_atom()
-    assert RawHtmlMatchInLiveViewTests.explanation() |> is_binary()
-    assert RawHtmlMatchInLiveViewTests.params_defaults() |> is_list()
-    assert RawHtmlMatchInLiveViewTests.params_names() |> is_list()
+    assert RawHtmlMatchInLiveViewTests.explanations()[:check] |> is_binary()
+    assert RawHtmlMatchInLiveViewTests.param_defaults() |> is_list()
+    assert RawHtmlMatchInLiveViewTests.param_names() |> is_list()
   end
 
   test ~s(flags `html =~ "text"`) do

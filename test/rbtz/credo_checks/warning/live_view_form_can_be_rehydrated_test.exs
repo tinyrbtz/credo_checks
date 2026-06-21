@@ -7,9 +7,9 @@ defmodule Rbtz.CredoChecks.Warning.LiveViewFormCanBeRehydratedTest do
     assert LiveViewFormCanBeRehydrated.id() |> is_binary()
     assert LiveViewFormCanBeRehydrated.category() |> is_atom()
     assert LiveViewFormCanBeRehydrated.base_priority() |> is_atom()
-    assert LiveViewFormCanBeRehydrated.explanation() |> is_binary()
-    assert LiveViewFormCanBeRehydrated.params_defaults() |> is_list()
-    assert LiveViewFormCanBeRehydrated.params_names() |> is_list()
+    assert LiveViewFormCanBeRehydrated.explanations()[:check] |> is_binary()
+    assert LiveViewFormCanBeRehydrated.param_defaults() |> is_list()
+    assert LiveViewFormCanBeRehydrated.param_names() |> is_list()
   end
 
   test "flags `<.form phx-submit>` missing both id and phx-change" do
