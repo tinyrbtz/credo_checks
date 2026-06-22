@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## Unreleased
+## 0.8.0
 
 - **New check** `Rbtz.CredoChecks.Refactor.PreferWithOverCase` — flags a
   two-clause `case` whose only non-happy-path clause re-returns an error shape
