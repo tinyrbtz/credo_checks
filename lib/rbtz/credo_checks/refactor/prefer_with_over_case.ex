@@ -5,8 +5,8 @@ defmodule Rbtz.CredoChecks.Refactor.PreferWithOverCase do
     category: :refactor,
     explanations: [
       check: """
-      Flags a two-clause `case` whose only non-happy-path clause re-returns the
-      value it matched, unchanged. A `with` expresses this more directly: its
+      Flags a two-clause `case` whose only non-happy-path clause re-returns an
+      error it matched, unchanged. A `with` expresses this more directly: its
       implicit `else` returns the non-matching value as-is, so the pass-through
       clause disappears.
 
@@ -17,32 +17,26 @@ defmodule Rbtz.CredoChecks.Refactor.PreferWithOverCase do
             {:error, reason} -> {:error, reason}
           end
 
-          case File.read(path) do
-            {:ok, contents} -> String.upcase(contents)
-            other -> other
-          end
-
       # Good
 
           with {:ok, contents} <- File.read(path) do
             {:ok, String.trim(contents)}
           end
 
-          with {:ok, contents} <- File.read(path) do
-            String.upcase(contents)
-          end
-
-      A clause is a pass-through when its body is structurally identical to the
-      pattern it matched (`{:error, reason} -> {:error, reason}`, `other ->
-      other`).
+      The pass-through clause must re-return an error shape — an `{:error, ...}`
+      tuple or the bare `:error` atom — whose body is structurally identical to
+      the pattern it matched (`{:error, reason} -> {:error, reason}`,
+      `:error -> :error`).
 
       To keep rewrites safe, only this shape is flagged. These are not flagged:
 
         * `case` with one clause, or three or more clauses.
         * Both clauses doing real work (no pass-through clause).
-        * Both clauses being pass-throughs (an identity `case`).
+        * Both clauses being pass-through clauses (an identity `case`).
+        * A pass-through clause that isn't an error shape (e.g. `nil -> nil`,
+          `other -> other`).
         * A clause head with a `when` guard.
-        * A catch-all happy path (`_` / a bare variable) paired with a specific
+        * A catch-all happy path (`_` / a bare variable) paired with the error
           pass-through — the rewrite would depend on clause order.
       """
     ]
@@ -70,17 +64,16 @@ defmodule Rbtz.CredoChecks.Refactor.PreferWithOverCase do
 
   defp walk(ast, ctx), do: {ast, ctx}
 
-  # Flag iff exactly one of the two clauses is a pass-through and the other
-  # (happy-path) clause's pattern is not a catch-all — so the two patterns are
-  # mutually exclusive and clause order can't change semantics.
+  # Flag iff one clause is an error pass-through (re-returns an `{:error, ...}`
+  # tuple or `:error` unchanged) and the other is a work clause — not a
+  # catch-all and not itself a pass-through. Requiring a non-catch-all work
+  # clause keeps the two patterns mutually exclusive, so clause order can't
+  # change semantics under the `with` rewrite.
   defp flaggable?([clause_a, clause_b]) do
     with {:ok, {pat_a, body_a}} <- clause_parts(clause_a),
          {:ok, {pat_b, body_b}} <- clause_parts(clause_b) do
-      case {passthrough?(pat_a, body_a), passthrough?(pat_b, body_b)} do
-        {true, false} -> not catch_all?(pat_b)
-        {false, true} -> not catch_all?(pat_a)
-        _ -> false
-      end
+      (error_passthrough?(pat_a, body_a) and work_clause?(pat_b, body_b)) or
+        (error_passthrough?(pat_b, body_b) and work_clause?(pat_a, body_a))
     else
       _ -> false
     end
@@ -88,10 +81,20 @@ defmodule Rbtz.CredoChecks.Refactor.PreferWithOverCase do
 
   defp flaggable?(_), do: false
 
-  # Guarded clauses don't map cleanly to a guardless `with`, so skip them.
+  # Each `case` clause is a `:->` node with a single head pattern. Guarded
+  # clauses can't be expressed as a plain `with` pattern, so skip them.
   defp clause_parts({:->, _, [[{:when, _, _}], _body]}), do: :error
   defp clause_parts({:->, _, [[pattern], body]}), do: {:ok, {pattern, body}}
-  defp clause_parts(_), do: :error
+
+  defp error_passthrough?(pattern, body),
+    do: error_shape?(pattern) and passthrough?(pattern, body)
+
+  defp work_clause?(pattern, body),
+    do: not catch_all?(pattern) and not passthrough?(pattern, body)
+
+  defp error_shape?({:error, _}), do: true
+  defp error_shape?(:error), do: true
+  defp error_shape?(_), do: false
 
   defp passthrough?(pattern, body), do: strip_meta(pattern) == strip_meta(body)
 
@@ -110,7 +113,7 @@ defmodule Rbtz.CredoChecks.Refactor.PreferWithOverCase do
   defp issue_for(ctx, meta) do
     format_issue(ctx,
       message:
-        "This `case` only passes a clause through unchanged — rewrite it as a `with` expression.",
+        "This `case` only passes an error clause through unchanged — rewrite it as a `with` expression.",
       trigger: "case",
       line_no: meta[:line]
     )

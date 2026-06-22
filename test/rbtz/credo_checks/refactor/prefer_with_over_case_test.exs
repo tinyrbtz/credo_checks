@@ -34,13 +34,13 @@ defmodule Rbtz.CredoChecks.Refactor.PreferWithOverCaseTest do
       |> assert_issue(fn issue -> assert issue.trigger == "case" end)
     end
 
-    test "bare-variable pass-through with specific happy path (`other -> other`)" do
+    test "bare `:error` atom pass-through (`:error -> :error`)" do
       """
       defmodule M do
-        def go(path) do
-          case File.read(path) do
-            {:ok, contents} -> String.upcase(contents)
-            other -> other
+        def go(map) do
+          case Map.fetch(map, :count) do
+            {:ok, count} -> {:ok, count + 1}
+            :error -> :error
           end
         end
       end
@@ -68,6 +68,38 @@ defmodule Rbtz.CredoChecks.Refactor.PreferWithOverCaseTest do
   end
 
   describe "does not flag" do
+    test "bare-variable default fall-through (not an error shape)" do
+      """
+      defmodule M do
+        def go(cache, key) do
+          case Map.get(cache, key) do
+            nil -> %{}
+            cached -> cached
+          end
+        end
+      end
+      """
+      |> to_source_file()
+      |> run_check(PreferWithOverCase)
+      |> refute_issues()
+    end
+
+    test "bare-variable pass-through with specific happy path (`other -> other`)" do
+      """
+      defmodule M do
+        def go(path) do
+          case File.read(path) do
+            {:ok, contents} -> String.upcase(contents)
+            other -> other
+          end
+        end
+      end
+      """
+      |> to_source_file()
+      |> run_check(PreferWithOverCase)
+      |> refute_issues()
+    end
+
     test "both clauses do real work" do
       """
       defmodule M do
@@ -116,13 +148,13 @@ defmodule Rbtz.CredoChecks.Refactor.PreferWithOverCaseTest do
       |> refute_issues()
     end
 
-    test "guard on the pass-through clause" do
+    test "guard on the error pass-through clause" do
       """
       defmodule M do
-        def go(value) do
-          case Integer.parse(value) do
-            {int, _rest} -> {:ok, int}
-            other when is_atom(other) -> other
+        def go(path) do
+          case File.read(path) do
+            {:ok, contents} -> contents
+            {:error, reason} when is_atom(reason) -> {:error, reason}
           end
         end
       end
@@ -148,7 +180,7 @@ defmodule Rbtz.CredoChecks.Refactor.PreferWithOverCaseTest do
       |> refute_issues()
     end
 
-    test "both clauses are identical pass-throughs" do
+    test "both clauses are identical pass-through clauses" do
       """
       defmodule M do
         def go(path) do
