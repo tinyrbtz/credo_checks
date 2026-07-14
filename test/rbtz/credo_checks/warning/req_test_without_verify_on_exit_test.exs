@@ -18,7 +18,7 @@ defmodule Rbtz.CredoChecks.Warning.ReqTestWithoutVerifyOnExitTest do
       use ExUnit.Case, async: true
 
       test "it" do
-        Req.Test.expect(MyApp.HTTP, fn conn -> conn end)
+        Req.Test.expect(HTTPClient, fn conn -> conn end)
       end
     end
     """
@@ -33,7 +33,7 @@ defmodule Rbtz.CredoChecks.Warning.ReqTestWithoutVerifyOnExitTest do
       use ExUnit.Case, async: true
 
       test "it" do
-        Req.Test.stub(MyApp.HTTP, fn conn -> conn end)
+        Req.Test.stub(HTTPClient, fn conn -> conn end)
       end
     end
     """
@@ -50,7 +50,7 @@ defmodule Rbtz.CredoChecks.Warning.ReqTestWithoutVerifyOnExitTest do
       setup :verify_on_exit!
 
       test "it" do
-        Req.Test.expect(MyApp.HTTP, fn conn -> conn end)
+        Req.Test.expect(HTTPClient, fn conn -> conn end)
       end
     end
     """
@@ -70,7 +70,7 @@ defmodule Rbtz.CredoChecks.Warning.ReqTestWithoutVerifyOnExitTest do
       end
 
       test "it" do
-        Req.Test.expect(MyApp.HTTP, fn conn -> conn end)
+        Req.Test.expect(HTTPClient, fn conn -> conn end)
       end
     end
     """
@@ -91,7 +91,7 @@ defmodule Rbtz.CredoChecks.Warning.ReqTestWithoutVerifyOnExitTest do
       end
 
       test "it" do
-        Req.Test.expect(MyApp.HTTP, fn conn -> conn end)
+        Req.Test.expect(HTTPClient, fn conn -> conn end)
       end
     end
     """
@@ -117,7 +117,7 @@ defmodule Rbtz.CredoChecks.Warning.ReqTestWithoutVerifyOnExitTest do
     """
     defmodule M do
       def run do
-        Req.Test.stub(MyApp.HTTP, fn conn -> conn end)
+        Req.Test.stub(HTTPClient, fn conn -> conn end)
       end
     end
     """
@@ -134,7 +134,7 @@ defmodule Rbtz.CredoChecks.Warning.ReqTestWithoutVerifyOnExitTest do
       setup [:some_other, :verify_on_exit!]
 
       test "it" do
-        Req.Test.expect(MyApp.HTTP, fn conn -> conn end)
+        Req.Test.expect(HTTPClient, fn conn -> conn end)
       end
     end
     """
@@ -151,7 +151,7 @@ defmodule Rbtz.CredoChecks.Warning.ReqTestWithoutVerifyOnExitTest do
       setup verify_on_exit!
 
       test "it" do
-        Req.Test.expect(MyApp.HTTP, fn conn -> conn end)
+        Req.Test.expect(HTTPClient, fn conn -> conn end)
       end
     end
     """
@@ -172,7 +172,7 @@ defmodule Rbtz.CredoChecks.Warning.ReqTestWithoutVerifyOnExitTest do
       setup :verify_on_exit!
 
       test "it" do
-        Req.Test.expect(MyApp.HTTP, fn conn -> conn end)
+        Req.Test.expect(HTTPClient, fn conn -> conn end)
       end
     end
     """
@@ -189,7 +189,7 @@ defmodule Rbtz.CredoChecks.Warning.ReqTestWithoutVerifyOnExitTest do
       setup 42
 
       test "it" do
-        Req.Test.expect(MyApp.HTTP, fn conn -> conn end)
+        Req.Test.expect(HTTPClient, fn conn -> conn end)
       end
     end
     """
@@ -206,7 +206,7 @@ defmodule Rbtz.CredoChecks.Warning.ReqTestWithoutVerifyOnExitTest do
       Req.Test.verify_on_exit!()
 
       test "it" do
-        Req.Test.expect(MyApp.HTTP, fn conn -> conn end)
+        Req.Test.expect(HTTPClient, fn conn -> conn end)
       end
     end
     """

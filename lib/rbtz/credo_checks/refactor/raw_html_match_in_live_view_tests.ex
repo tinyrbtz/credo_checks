@@ -14,8 +14,8 @@ defmodule Rbtz.CredoChecks.Refactor.RawHtmlMatchInLiveViewTests do
       not that the right element rendered the right text.
 
       Prefer selecting a specific element (by `id`, `data-test`, or other
-      stable selector) and asserting on its text content via the project's
-      DOM helpers (`get_text/2`, `has_element?/2`, etc.).
+      stable selector) and asserting via LiveViewTest helpers such as
+      `has_element?/3`.
 
       The check fires on `=~ "string literal"` when the left-hand side is one
       of:
@@ -36,17 +36,17 @@ defmodule Rbtz.CredoChecks.Refactor.RawHtmlMatchInLiveViewTests do
 
       # Good
 
-          @greeting_css "[data-test=greeting]"
-
           {:ok, view, _html} = live(conn, "/users")
-          assert get_text(view, @greeting_css) == "Welcome, Alice"
+          assert has_element?(view, "[data-test=greeting]", "Welcome, Alice")
       """
     ]
+
+  alias Rbtz.CredoChecks.TestSource
 
   @doc false
   @impl Credo.Check
   def run(%SourceFile{} = source_file, params) do
-    if test_file?(source_file.filename) do
+    if TestSource.test_file?(source_file.filename) do
       ctx = Context.build(source_file, params, __MODULE__)
       result = Credo.Code.prewalk(source_file, &walk/2, ctx)
       result.issues
@@ -54,13 +54,6 @@ defmodule Rbtz.CredoChecks.Refactor.RawHtmlMatchInLiveViewTests do
       []
     end
   end
-
-  defp test_file?(filename) when is_binary(filename) do
-    expanded = Path.expand(filename)
-    String.ends_with?(filename, "_test.exs") or String.contains?(expanded, "/test/")
-  end
-
-  defp test_file?(_), do: false
 
   defp walk({:=~, meta, [lhs, rhs]} = ast, acc) when is_binary(rhs) do
     if trigger = rendered_html_trigger(lhs) do

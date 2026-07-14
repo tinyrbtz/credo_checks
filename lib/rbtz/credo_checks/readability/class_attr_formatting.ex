@@ -121,79 +121,21 @@ defmodule Rbtz.CredoChecks.Readability.ClassAttrFormatting do
   end
 
   defp find_class_attrs(heex) do
-    find_attrs(heex, "class={", :interp, &HeexSource.capture_interpolation/1) ++
-      find_attrs(heex, ~s(class="), :literal, &HeexSource.capture_string/1)
-  end
-
-  defp find_attrs(heex, prefix, kind, capture_fn) do
-    heex
-    |> :binary.matches(prefix)
-    |> Enum.flat_map(fn {start, _len} ->
-      open_pos = start + byte_size(prefix)
-      rest = binary_part(heex, open_pos, byte_size(heex) - open_pos)
-
-      case capture_fn.(rest) do
-        {:ok, content} ->
-          offset = heex |> binary_part(0, start) |> HeexSource.count_newlines()
-          [{kind, offset, content}]
-
-        :unterminated ->
-          []
+    for {offset, content} <-
+          HeexSource.find_attr_bodies(heex, "class={", &HeexSource.capture_interpolation/1) do
+      {:interp, offset, content}
+    end ++
+      for {offset, content} <-
+            HeexSource.find_attr_bodies(heex, ~s(class="), &HeexSource.capture_string/1) do
+        {:literal, offset, content}
       end
-    end)
   end
 
   defp needs_brackets?(content) do
     trimmed = String.trim_leading(content)
 
-    not String.starts_with?(trimmed, "[") and
-      top_level_comma?(content, %{bd: 0, bracd: 0, pard: 0, str: nil})
+    not String.starts_with?(trimmed, "[") and HeexSource.top_level_comma?(content)
   end
-
-  # Top-level comma scan over the captured content.
-  defp top_level_comma?(<<>>, _s), do: false
-
-  defp top_level_comma?(<<?\\, _c, rest::binary>>, %{str: str} = s) when str != nil do
-    top_level_comma?(rest, s)
-  end
-
-  defp top_level_comma?(<<c, rest::binary>>, %{str: str} = s) when str != nil and c == str do
-    top_level_comma?(rest, %{s | str: nil})
-  end
-
-  defp top_level_comma?(<<_c, rest::binary>>, %{str: str} = s) when str != nil do
-    top_level_comma?(rest, s)
-  end
-
-  defp top_level_comma?(<<?", rest::binary>>, s), do: top_level_comma?(rest, %{s | str: ?"})
-  defp top_level_comma?(<<?', rest::binary>>, s), do: top_level_comma?(rest, %{s | str: ?'})
-
-  defp top_level_comma?(<<?{, rest::binary>>, %{bd: bd} = s) do
-    top_level_comma?(rest, %{s | bd: bd + 1})
-  end
-
-  defp top_level_comma?(<<?}, rest::binary>>, %{bd: bd} = s) do
-    top_level_comma?(rest, %{s | bd: bd - 1})
-  end
-
-  defp top_level_comma?(<<?[, rest::binary>>, %{bracd: bracd} = s) do
-    top_level_comma?(rest, %{s | bracd: bracd + 1})
-  end
-
-  defp top_level_comma?(<<?], rest::binary>>, %{bracd: bracd} = s) do
-    top_level_comma?(rest, %{s | bracd: bracd - 1})
-  end
-
-  defp top_level_comma?(<<?(, rest::binary>>, %{pard: pard} = s) do
-    top_level_comma?(rest, %{s | pard: pard + 1})
-  end
-
-  defp top_level_comma?(<<?), rest::binary>>, %{pard: pard} = s) do
-    top_level_comma?(rest, %{s | pard: pard - 1})
-  end
-
-  defp top_level_comma?(<<?,, _rest::binary>>, %{bd: 0, bracd: 0, pard: 0, str: nil}), do: true
-  defp top_level_comma?(<<_c, rest::binary>>, s), do: top_level_comma?(rest, s)
 
   defp issue_for(ctx, :no_brackets, line_no) do
     format_issue(ctx,

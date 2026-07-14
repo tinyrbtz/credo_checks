@@ -149,31 +149,20 @@ defmodule Rbtz.CredoChecks.Refactor.RedundantThen do
     end
   end
 
-  # --- Classification ---
-
-  # Capture form `&...`
   defp classify({:&, _, [body]}), do: classify_capture(body)
-
-  # Anonymous fn `fn x -> ... end`
   defp classify({:fn, _, [{:->, _, [args, body]}]}), do: classify_fn(args, body)
-
   defp classify(_), do: :skip
 
-  # --- Capture ---
-
-  # `&name/1` — local arity-1 shorthand.
   defp classify_capture({:/, _, [{name, _, ctx}, 1]})
        when is_atom(name) and (is_nil(ctx) or is_atom(ctx)) and
               name not in @binary_ops and name not in @unary_ops do
     {:flag, Macro.to_string({name, [], []})}
   end
 
-  # `&Mod.name/1` — remote arity-1 shorthand.
   defp classify_capture({:/, _, [{{:., _, [mod, fname]}, _, []}, 1]}) when is_atom(fname) do
     {:flag, Macro.to_string({{:., [], [mod, fname]}, [], []})}
   end
 
-  # Inline capture body like `&foo(&1, ...)` / `&Mod.foo(&1, ...)`.
   defp classify_capture(body) do
     case count_ampersand_refs(body) do
       {1, false} -> classify_partial(body)
@@ -181,7 +170,6 @@ defmodule Rbtz.CredoChecks.Refactor.RedundantThen do
     end
   end
 
-  # Local partial-application `&fname(&1, rest...)`.
   defp classify_partial({fname, _, [{:&, _, [1]} | rest]})
        when is_atom(fname) and
               fname not in @binary_ops and fname not in @unary_ops and
@@ -189,7 +177,6 @@ defmodule Rbtz.CredoChecks.Refactor.RedundantThen do
     {:flag, Macro.to_string({fname, [], rest})}
   end
 
-  # Remote partial-application `&Mod.fname(&1, rest...)` / `&mod.fname(&1, rest...)`.
   defp classify_partial({{:., m, [mod, fname]}, _, [{:&, _, [1]} | rest]})
        when is_atom(fname) do
     {:flag, Macro.to_string({{:., m, [mod, fname]}, [], rest})}
@@ -214,8 +201,6 @@ defmodule Rbtz.CredoChecks.Refactor.RedundantThen do
 
     result
   end
-
-  # --- fn classification ---
 
   defp classify_fn(args, body) do
     with {:ok, arg_name} <- extract_single_plain_arg(args),

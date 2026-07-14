@@ -31,10 +31,12 @@ defmodule Rbtz.CredoChecks.Warning.SetMimicGlobal do
       """
     ]
 
+  alias Rbtz.CredoChecks.TestSource
+
   @doc false
   @impl Credo.Check
   def run(%SourceFile{} = source_file, params) do
-    if test_file?(source_file.filename) do
+    if TestSource.test_file?(source_file.filename) do
       ctx = Context.build(source_file, params, __MODULE__)
       result = Credo.Code.prewalk(source_file, &walk/2, ctx)
       result.issues
@@ -43,16 +45,9 @@ defmodule Rbtz.CredoChecks.Warning.SetMimicGlobal do
     end
   end
 
-  defp test_file?(filename) when is_binary(filename) do
-    expanded = Path.expand(filename)
-    String.ends_with?(filename, "_test.exs") or String.contains?(expanded, "/test/")
-  end
-
-  defp test_file?(_), do: false
-
-  defp walk({op, meta, [arg]} = ast, ctx)
-       when op in [:setup, :setup_all] do
-    if set_mimic_global?(arg) do
+  defp walk({op, meta, args} = ast, ctx)
+       when op in [:setup, :setup_all] and is_list(args) do
+    if Enum.any?(args, &set_mimic_global?/1) do
       {ast, put_issue(ctx, issue_for(ctx, op, meta))}
     else
       {ast, ctx}
@@ -61,10 +56,14 @@ defmodule Rbtz.CredoChecks.Warning.SetMimicGlobal do
 
   defp walk(ast, ctx), do: {ast, ctx}
 
-  # `setup :set_mimic_global` — atom form.
   defp set_mimic_global?(:set_mimic_global), do: true
-  # `setup set_mimic_global()` — call form.
+
   defp set_mimic_global?({:set_mimic_global, _meta, _args}), do: true
+
+  defp set_mimic_global?(list) when is_list(list) do
+    not Keyword.keyword?(list) and Enum.any?(list, &set_mimic_global?/1)
+  end
+
   defp set_mimic_global?(_), do: false
 
   defp issue_for(ctx, op, meta) do

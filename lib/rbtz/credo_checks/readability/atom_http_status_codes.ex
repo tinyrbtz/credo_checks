@@ -35,16 +35,16 @@ defmodule Rbtz.CredoChecks.Readability.AtomHttpStatusCodes do
       """
     ]
 
-  # function name => 0-indexed position of the status arg in the *unpiped* form.
-  @status_arg_position %{
-    send_resp: 1,
-    put_status: 1,
-    resp: 1,
-    response: 1,
-    json_response: 1,
-    html_response: 1,
-    redirected_to: 1
-  }
+  # Status arg is index 1 unpiped, index 0 when piped.
+  @status_fns MapSet.new([
+                :send_resp,
+                :put_status,
+                :resp,
+                :response,
+                :json_response,
+                :html_response,
+                :redirected_to
+              ])
 
   @doc false
   @impl Credo.Check
@@ -97,22 +97,18 @@ defmodule Rbtz.CredoChecks.Readability.AtomHttpStatusCodes do
   end
 
   defp maybe_flag(ctx, fname, meta, args, piped?) do
-    @status_arg_position
-    |> Map.fetch(fname)
-    |> case do
-      {:ok, pos} ->
-        adjusted = if piped?, do: pos - 1, else: pos
+    if MapSet.member?(@status_fns, fname) do
+      pos = if piped?, do: 0, else: 1
 
-        case Enum.at(args, adjusted) do
-          n when is_integer(n) and n >= 100 and n <= 599 ->
-            put_issue(ctx, issue_for(ctx, fname, n, meta))
+      case Enum.at(args, pos) do
+        n when is_integer(n) and n >= 100 and n <= 599 ->
+          put_issue(ctx, issue_for(ctx, fname, n, meta))
 
-          _ ->
-            ctx
-        end
-
-      :error ->
-        ctx
+        _ ->
+          ctx
+      end
+    else
+      ctx
     end
   end
 

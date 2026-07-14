@@ -78,13 +78,13 @@ defmodule Rbtz.CredoChecks.Readability.ModuleAttrCollectionFormatting do
     |> Enum.reverse()
   end
 
-  # A module-attribute definition is `@name <value>`. Inspect the value.
   defp walk([{:at_op, _, :@}, {:identifier, _, _} | rest], lines, ctx) do
     {rest_after, ctx} = check_value(rest, lines, ctx)
     walk(rest_after, lines, ctx)
   end
 
   defp walk([_ | rest], lines, ctx), do: walk(rest, lines, ctx)
+
   defp walk([], _lines, ctx), do: ctx
 
   # Word sigils carry their content verbatim — analyse whitespace-separated
@@ -94,12 +94,10 @@ defmodule Rbtz.CredoChecks.Readability.ModuleAttrCollectionFormatting do
     {rest, check_sigil(parts, sl, lines, ctx)}
   end
 
-  # List literal (also covers bracketed keyword lists).
   defp check_value([{:"[", {ol, _, _}} | rest], lines, ctx) do
     scan_and_flag(rest, ol, lines, ctx)
   end
 
-  # Tuple literal.
   defp check_value([{:"{", {ol, _, _}} | rest], lines, ctx) do
     scan_and_flag(rest, ol, lines, ctx)
   end
@@ -117,8 +115,6 @@ defmodule Rbtz.CredoChecks.Readability.ModuleAttrCollectionFormatting do
     end
   end
 
-  # Anything else (`@x 5`, `@x "s"`, `@moduledoc "..."`, ...) is not a
-  # collection we format.
   defp check_value(rest, _lines, ctx), do: {rest, ctx}
 
   defp skip_to_brace([{:"{", {ol, _, _}} | rest]), do: {ol, rest}

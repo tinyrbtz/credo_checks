@@ -51,12 +51,14 @@ defmodule Rbtz.CredoChecks.Warning.AssertNonEmptyBeforeIterate do
       """
     ]
 
+  alias Rbtz.CredoChecks.TestSource
+
   @iter_funs [:each, :map, :filter, :reject, :all?, :any?, :flat_map, :reduce]
 
   @doc false
   @impl Credo.Check
   def run(%SourceFile{} = source_file, params) do
-    if test_file?(source_file.filename) do
+    if TestSource.test_file?(source_file.filename) do
       ctx = Context.build(source_file, params, __MODULE__)
       result = Credo.Code.prewalk(source_file, &walk_top/2, ctx)
       Enum.reverse(result.issues)
@@ -65,12 +67,6 @@ defmodule Rbtz.CredoChecks.Warning.AssertNonEmptyBeforeIterate do
     end
   end
 
-  defp test_file?(filename) do
-    expanded = Path.expand(filename)
-    String.ends_with?(filename, "_test.exs") or String.contains?(expanded, "/test/")
-  end
-
-  # Find `test "..." do ... end` blocks.
   defp walk_top({:test, _meta, args} = ast, ctx) when is_list(args) do
     case List.last(args) do
       [do: body] -> {ast, scan_test_body(body, ctx)}
@@ -99,9 +95,6 @@ defmodule Rbtz.CredoChecks.Warning.AssertNonEmptyBeforeIterate do
   defp body_statements({:__block__, _meta, stmts}), do: stmts
   defp body_statements(stmt), do: [stmt]
 
-  # Recognize non-empty guards and add the variable name to the set.
-
-  # refute Enum.empty?(x)
   defp maybe_add_guard(
          guarded,
          {:refute, _, [{{:., _, [{:__aliases__, _, [:Enum]}, :empty?]}, _, [{name, _, ctx}]}]}
@@ -110,7 +103,6 @@ defmodule Rbtz.CredoChecks.Warning.AssertNonEmptyBeforeIterate do
     MapSet.put(guarded, name)
   end
 
-  # refute x |> Enum.empty?()
   defp maybe_add_guard(
          guarded,
          {:refute, _,
@@ -120,7 +112,6 @@ defmodule Rbtz.CredoChecks.Warning.AssertNonEmptyBeforeIterate do
     MapSet.put(guarded, name)
   end
 
-  # assert Enum.empty?(x) == false
   defp maybe_add_guard(
          guarded,
          {:assert, _,
@@ -133,7 +124,6 @@ defmodule Rbtz.CredoChecks.Warning.AssertNonEmptyBeforeIterate do
     MapSet.put(guarded, name)
   end
 
-  # assert x |> Enum.empty?() == false
   defp maybe_add_guard(
          guarded,
          {:assert, _,
@@ -150,27 +140,24 @@ defmodule Rbtz.CredoChecks.Warning.AssertNonEmptyBeforeIterate do
     MapSet.put(guarded, name)
   end
 
-  # assert x != []
   defp maybe_add_guard(guarded, {:assert, _, [{:!=, _, [{name, _, ctx}, []]}]})
-       when is_atom(name) and is_atom(ctx), do: MapSet.put(guarded, name)
+       when is_atom(name) and is_atom(ctx),
+       do: MapSet.put(guarded, name)
 
-  # refute x == []
   defp maybe_add_guard(guarded, {:refute, _, [{:==, _, [{name, _, ctx}, []]}]})
-       when is_atom(name) and is_atom(ctx), do: MapSet.put(guarded, name)
+       when is_atom(name) and is_atom(ctx),
+       do: MapSet.put(guarded, name)
 
-  # assert length(x) > n  (n >= 0)
   defp maybe_add_guard(guarded, {:assert, _, [{:>, _, [{:length, _, [{name, _, ctx}]}, n]}]})
        when is_atom(name) and is_atom(ctx) and is_integer(n) and n >= 0 do
     MapSet.put(guarded, name)
   end
 
-  # assert length(x) >= n  (n >= 1)
   defp maybe_add_guard(guarded, {:assert, _, [{:>=, _, [{:length, _, [{name, _, ctx}]}, n]}]})
        when is_atom(name) and is_atom(ctx) and is_integer(n) and n >= 1 do
     MapSet.put(guarded, name)
   end
 
-  # assert x |> length() > n  (n >= 0)
   defp maybe_add_guard(
          guarded,
          {:assert, _, [{:>, _, [{:|>, _, [{name, _, ctx}, {:length, _, []}]}, n]}]}
@@ -179,7 +166,6 @@ defmodule Rbtz.CredoChecks.Warning.AssertNonEmptyBeforeIterate do
     MapSet.put(guarded, name)
   end
 
-  # assert x |> length() >= n  (n >= 1)
   defp maybe_add_guard(
          guarded,
          {:assert, _, [{:>=, _, [{:|>, _, [{name, _, ctx}, {:length, _, []}]}, n]}]}
@@ -197,8 +183,6 @@ defmodule Rbtz.CredoChecks.Warning.AssertNonEmptyBeforeIterate do
 
   defp maybe_drop_rebind(guarded, _), do: guarded
 
-  # Recognize iterating calls and flag if the iterated variable isn't
-  # in the guarded set and the iteration body contains assert/refute.
   defp check_iteration(stmt, guarded, ctx) do
     case normalize_iteration(stmt) do
       {fun, var, fn_body, line_no} when is_atom(fun) ->
@@ -213,7 +197,6 @@ defmodule Rbtz.CredoChecks.Warning.AssertNonEmptyBeforeIterate do
     end
   end
 
-  # Direct form: Enum.each(list, fn -> ... end)
   defp normalize_iteration(
          {{:., _, [{:__aliases__, _, [:Enum]}, fun]}, meta, [{name, _, ctx} | rest]}
        )
@@ -224,7 +207,6 @@ defmodule Rbtz.CredoChecks.Warning.AssertNonEmptyBeforeIterate do
     end
   end
 
-  # Piped form: list |> Enum.each(fn -> ... end)
   defp normalize_iteration(
          {:|>, meta, [{name, _, ctx}, {{:., _, [{:__aliases__, _, [:Enum]}, fun]}, _, rest}]}
        )

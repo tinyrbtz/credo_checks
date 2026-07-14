@@ -275,7 +275,7 @@ defmodule Rbtz.CredoChecks.Refactor.RedundantThenTest do
     test "pattern-matched struct arg" do
       """
       defmodule M do
-        def go(x), do: x |> then(fn %User{name: n} -> n end)
+        def go(x), do: x |> then(fn %URI{path: n} -> n end)
       end
       """
       |> to_source_file()

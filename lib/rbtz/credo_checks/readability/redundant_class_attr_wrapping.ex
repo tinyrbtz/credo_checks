@@ -81,21 +81,7 @@ defmodule Rbtz.CredoChecks.Readability.RedundantClassAttrWrapping do
   end
 
   defp find_class_interps(heex) do
-    heex
-    |> :binary.matches("class={")
-    |> Enum.flat_map(fn {start, _len} ->
-      open_pos = start + byte_size("class={")
-      rest = binary_part(heex, open_pos, byte_size(heex) - open_pos)
-
-      case HeexSource.capture_interpolation(rest) do
-        {:ok, content} ->
-          offset = heex |> binary_part(0, start) |> HeexSource.count_newlines()
-          [{offset, content}]
-
-        :unterminated ->
-          []
-      end
-    end)
+    HeexSource.find_attr_bodies(heex, "class={", &HeexSource.capture_interpolation/1)
   end
 
   defp classify(content) do
@@ -124,7 +110,7 @@ defmodule Rbtz.CredoChecks.Readability.RedundantClassAttrWrapping do
 
   defp classify_list_inner(inner) do
     cond do
-      top_level_comma?(inner, init_state()) -> :ok
+      HeexSource.top_level_comma?(inner) -> :ok
       static_string?(inner) -> :single_string_list
       true -> :single_expr_list
     end
@@ -138,55 +124,6 @@ defmodule Rbtz.CredoChecks.Readability.RedundantClassAttrWrapping do
   @static_string_regex ~r/\A"(?:[^"\\#]|\\.|#(?!\{))+"\z/s
 
   defp static_string?(s) when is_binary(s), do: Regex.match?(@static_string_regex, s)
-
-  # Top-level comma scanner — same contract as the one in ClassAttrFormatting.
-  # Tracks brace / bracket / paren depth and in-string state so commas inside
-  # `if(@x, do: "foo")`, `Map.get(...)`, charlist literals, etc. don't count.
-  defp init_state, do: %{bd: 0, bracd: 0, pard: 0, str: nil}
-
-  defp top_level_comma?(<<>>, _s), do: false
-
-  defp top_level_comma?(<<?\\, _c, rest::binary>>, %{str: str} = s) when str != nil do
-    top_level_comma?(rest, s)
-  end
-
-  defp top_level_comma?(<<c, rest::binary>>, %{str: str} = s) when str != nil and c == str do
-    top_level_comma?(rest, %{s | str: nil})
-  end
-
-  defp top_level_comma?(<<_c, rest::binary>>, %{str: str} = s) when str != nil do
-    top_level_comma?(rest, s)
-  end
-
-  defp top_level_comma?(<<?", rest::binary>>, s), do: top_level_comma?(rest, %{s | str: ?"})
-  defp top_level_comma?(<<?', rest::binary>>, s), do: top_level_comma?(rest, %{s | str: ?'})
-
-  defp top_level_comma?(<<?{, rest::binary>>, %{bd: bd} = s) do
-    top_level_comma?(rest, %{s | bd: bd + 1})
-  end
-
-  defp top_level_comma?(<<?}, rest::binary>>, %{bd: bd} = s) do
-    top_level_comma?(rest, %{s | bd: bd - 1})
-  end
-
-  defp top_level_comma?(<<?[, rest::binary>>, %{bracd: bracd} = s) do
-    top_level_comma?(rest, %{s | bracd: bracd + 1})
-  end
-
-  defp top_level_comma?(<<?], rest::binary>>, %{bracd: bracd} = s) do
-    top_level_comma?(rest, %{s | bracd: bracd - 1})
-  end
-
-  defp top_level_comma?(<<?(, rest::binary>>, %{pard: pard} = s) do
-    top_level_comma?(rest, %{s | pard: pard + 1})
-  end
-
-  defp top_level_comma?(<<?), rest::binary>>, %{pard: pard} = s) do
-    top_level_comma?(rest, %{s | pard: pard - 1})
-  end
-
-  defp top_level_comma?(<<?,, _rest::binary>>, %{bd: 0, bracd: 0, pard: 0, str: nil}), do: true
-  defp top_level_comma?(<<_c, rest::binary>>, s), do: top_level_comma?(rest, s)
 
   defp issue_for(ctx, :bare_string, line_no) do
     format_issue(ctx,

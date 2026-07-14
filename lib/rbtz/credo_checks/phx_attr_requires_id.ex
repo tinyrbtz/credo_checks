@@ -30,8 +30,8 @@ defmodule Rbtz.CredoChecks.PhxAttrRequiresId do
       id: &HeexSource.has_id?/1,
       attr: detect_attr
     )
-    |> Enum.filter(fn {_open, _trigger, p} -> p.attr and not p.id end)
-    |> Enum.map(fn {open, _trigger, _p} -> open end)
+    |> Enum.filter(fn {_open, _trigger, presence} -> presence.attr and not presence.id end)
+    |> Enum.map(fn {open, _trigger, _presence} -> open end)
   end
 
   defp detect_any_tag(line) do

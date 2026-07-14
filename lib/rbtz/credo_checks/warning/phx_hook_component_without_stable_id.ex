@@ -128,7 +128,6 @@ defmodule Rbtz.CredoChecks.Warning.PhxHookComponentWithoutStableId do
     ctx =
       cond do
         attrs == [] -> ctx
-        not def_uses_phx_hook?(def_ast) -> ctx
         phx_hook_ids_all_stable?(def_ast, attrs) -> ctx
         true -> put_issue(ctx, issue_for(ctx, name_node))
       end
@@ -137,23 +136,10 @@ defmodule Rbtz.CredoChecks.Warning.PhxHookComponentWithoutStableId do
   end
 
   defp process_stmt({:def, _meta, _args}, {_attrs, ctx}), do: {[], ctx}
-  defp process_stmt({:defp, _meta, _args}, {_attrs, ctx}), do: {[], ctx}
+
+  defp process_stmt({:defp, _meta, _args}, state), do: state
+
   defp process_stmt(_, state), do: state
-
-  defp def_uses_phx_hook?(def_ast) do
-    {_, found?} =
-      Macro.prewalk(def_ast, false, fn
-        {:sigil_H, _, [{:<<>>, _, parts}, _]} = node, acc when is_list(parts) ->
-          {node, acc or Enum.any?(parts, &heex_has_phx_hook?/1)}
-
-        node, acc ->
-          {node, acc}
-      end)
-
-    found?
-  end
-
-  defp heex_has_phx_hook?(binary) when is_binary(binary), do: String.contains?(binary, "phx-hook")
 
   # True when every phx-hook-carrying opening tag in any `~H` template under
   # `def_ast` has a stable `id=` binding. An empty result (no such tag found)
@@ -294,11 +280,14 @@ defmodule Rbtz.CredoChecks.Warning.PhxHookComponentWithoutStableId do
   end
 
   defp id_expr_stable?(:literal_string, _attrs), do: true
+
   defp id_expr_stable?({:assign, name}, attrs), do: stable_id_provider?(attrs, name)
+
   defp id_expr_stable?({:complex_assigns, []}, _attrs), do: false
 
-  defp id_expr_stable?({:complex_assigns, names}, attrs),
-    do: Enum.all?(names, &stable_id_provider?(attrs, &1))
+  defp id_expr_stable?({:complex_assigns, names}, attrs) do
+    Enum.all?(names, &stable_id_provider?(attrs, &1))
+  end
 
   defp id_expr_stable?(:missing, _attrs), do: false
 

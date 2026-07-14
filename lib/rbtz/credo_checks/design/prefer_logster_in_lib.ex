@@ -62,18 +62,17 @@ defmodule Rbtz.CredoChecks.Design.PreferLogsterInLib do
   end
 
   defp lib_file?(filename) when is_binary(filename) do
-    filename |> Path.expand() |> String.contains?("/lib/")
+    segments = filename |> Path.expand() |> Path.split()
+    "lib" in segments
   end
 
   defp lib_file?(_), do: false
 
-  # `Logger.info(...)`, `Logger.log(...)`, etc. — only the log-level fns.
   defp walk({{:., _, [{:__aliases__, _, [:Logger]}, fname]}, meta, _args} = ast, ctx)
        when fname in @log_fns do
     {ast, put_issue(ctx, issue_for(ctx, "Logger.#{fname}", meta))}
   end
 
-  # `require Logger` / `import Logger`
   defp walk({op, meta, [{:__aliases__, _, [:Logger]}]} = ast, ctx)
        when op in [:require, :import] do
     {ast, put_issue(ctx, issue_for(ctx, "#{op} Logger", meta))}

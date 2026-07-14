@@ -76,8 +76,6 @@ defmodule Rbtz.CredoChecks.Refactor.PreferForAttrOverForBlock do
     )
   end
 
-  # ----- Finding <%= for ... do %> blocks and their bodies -----
-
   defp find_for_blocks(heex) do
     @for_opener
     |> Regex.scan(heex, return: :index)
@@ -125,8 +123,6 @@ defmodule Rbtz.CredoChecks.Refactor.PreferForAttrOverForBlock do
   end
 
   defp opens_block?(content), do: String.match?(content, ~r/\bdo$/)
-
-  # ----- Counting top-level elements inside a block body -----
 
   defp count_top_level_elements(body), do: scan_elements(body, 0, 0)
 
@@ -185,21 +181,26 @@ defmodule Rbtz.CredoChecks.Refactor.PreferForAttrOverForBlock do
   # On malformed input (no closing `>`), returns `{:open, <<>>}`.
   defp find_tag_end(<<>>, _braces, _str), do: {:open, <<>>}
 
-  defp find_tag_end(<<c, rest::binary>>, braces, str) when c == str,
-    do: find_tag_end(rest, braces, nil)
+  defp find_tag_end(<<c, rest::binary>>, braces, str) when c == str do
+    find_tag_end(rest, braces, nil)
+  end
 
-  defp find_tag_end(<<_c, rest::binary>>, braces, str) when str != nil,
-    do: find_tag_end(rest, braces, str)
+  defp find_tag_end(<<_c, rest::binary>>, braces, str) when str != nil do
+    find_tag_end(rest, braces, str)
+  end
 
-  defp find_tag_end(<<c, rest::binary>>, braces, nil) when c in [?", ?'],
-    do: find_tag_end(rest, braces, c)
+  defp find_tag_end(<<c, rest::binary>>, braces, nil) when c in [?", ?'] do
+    find_tag_end(rest, braces, c)
+  end
 
   defp find_tag_end(<<"{", rest::binary>>, braces, nil), do: find_tag_end(rest, braces + 1, nil)
 
-  defp find_tag_end(<<"}", rest::binary>>, braces, nil) when braces > 0,
-    do: find_tag_end(rest, braces - 1, nil)
+  defp find_tag_end(<<"}", rest::binary>>, braces, nil) when braces > 0 do
+    find_tag_end(rest, braces - 1, nil)
+  end
 
   defp find_tag_end(<<"/>", rest::binary>>, 0, nil), do: {:self_close, rest}
+
   defp find_tag_end(<<">", rest::binary>>, 0, nil), do: {:open, rest}
 
   defp find_tag_end(<<_c, rest::binary>>, braces, nil), do: find_tag_end(rest, braces, nil)

@@ -96,6 +96,34 @@ defmodule Rbtz.CredoChecks.Readability.LiveViewCallbackOrderTest do
     |> refute_issues()
   end
 
+  test "flags order violations when callbacks have when guards" do
+    ~S'''
+    defmodule MyLive do
+      use Phoenix.LiveView
+
+      def render(assigns), do: ~H""
+      def mount(_params, _session, socket) when is_map(socket), do: {:ok, socket}
+    end
+    '''
+    |> to_source_file()
+    |> run_check(LiveViewCallbackOrder)
+    |> assert_issue(fn issue -> assert issue.trigger == "mount" end)
+  end
+
+  test "ignores non-name def heads" do
+    ~S'''
+    defmodule MyLive do
+      use Phoenix.LiveView
+
+      def unquote(:mount)(_, _, socket), do: {:ok, socket}
+      def render(assigns), do: ~H""
+    end
+    '''
+    |> to_source_file()
+    |> run_check(LiveViewCallbackOrder)
+    |> refute_issues()
+  end
+
   test "does not flag multiple handle_event clauses grouped together" do
     ~S'''
     defmodule MyLive do

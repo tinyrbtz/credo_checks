@@ -177,7 +177,7 @@ defmodule Rbtz.CredoChecks.Readability.PreferCaptureTest do
     test "pattern-matched struct arg" do
       """
       defmodule M do
-        def go(users), do: Enum.map(users, fn %User{name: n} -> n end)
+        def go(users), do: Enum.map(users, fn %{name: n} -> n end)
       end
       """
       |> to_source_file()

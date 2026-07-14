@@ -208,8 +208,6 @@ defmodule Rbtz.CredoChecks.Readability.AwkwardPipe do
     |> Enum.uniq_by(fn issue -> {issue.line_no, issue.column} end)
   end
 
-  # --- Walker -------------------------------------------------------------
-
   # Pipe node: check Rule 3 (pipe into any Kernel.<op>) and Rule 2 (pipe then tight
   # binary op — `|> f() <> x`, etc.), then descend. The RHS of a pipe is
   # "piped" — every explicit arg is effectively a non-first arg.
@@ -374,8 +372,6 @@ defmodule Rbtz.CredoChecks.Readability.AwkwardPipe do
   # `{:|, _, [base, updates]}` — a 3-tuple, not a 2-tuple.
   defp walk_map_entry(other, ctx), do: walk(other, ctx)
 
-  # --- Predicates ---------------------------------------------------------
-
   defp pipe?({:|>, _, _}), do: true
   defp pipe?(_), do: false
 
@@ -422,8 +418,6 @@ defmodule Rbtz.CredoChecks.Readability.AwkwardPipe do
       _ -> false
     end)
   end
-
-  # --- Rule checks --------------------------------------------------------
 
   # Rule 3: pipe into a `Kernel.<op>(arg)` call. `Credo.Code.ast/1` always
   # emits the `:__aliases__` form for `Kernel`, so the bare-atom shape does
@@ -621,8 +615,6 @@ defmodule Rbtz.CredoChecks.Readability.AwkwardPipe do
 
   defp tuple_literal_line(a, b), do: line_of(a) || line_of(b)
 
-  # --- HEEx (Rule 9) ------------------------------------------------------
-
   defp scan_heex(source_file, ctx) do
     source_file
     |> HeexSource.templates()
@@ -683,8 +675,6 @@ defmodule Rbtz.CredoChecks.Readability.AwkwardPipe do
   defp pipe_occurrences(text) do
     length(String.split(text, "|>")) - 1
   end
-
-  # --- Issue builders -----------------------------------------------------
 
   defp rule1_issue(ctx, op, meta) do
     format_issue(ctx,

@@ -8,6 +8,11 @@ defmodule Rbtz.CredoChecks.Readability.FunctionSpacingTest do
     assert FunctionSpacing.run(src, []) == []
   end
 
+  test "returns no issues for a module form without a do body" do
+    src = Credo.SourceFile.parse("defmodule Foo", "lib/foo.ex")
+    assert FunctionSpacing.run(src, []) == []
+  end
+
   test "exposes metadata from `use Credo.Check`" do
     assert FunctionSpacing.id() |> is_binary()
     assert FunctionSpacing.category() == :readability

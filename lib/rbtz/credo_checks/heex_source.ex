@@ -18,7 +18,8 @@ defmodule Rbtz.CredoChecks.HeexSource do
   For `embed_templates`, the template contents live in a separate
   `.html.heex` file — Credo's `format_issue` can only reference lines that
   exist in the `.ex` source file, so `line_fn.(_)` always returns the line
-  of the `embed_templates` call.
+  of the `embed_templates` call. When `root:` is passed, it is resolved
+  relative to the calling file's directory (Phoenix's rule).
 
   ## Body capture
 
@@ -26,6 +27,10 @@ defmodule Rbtz.CredoChecks.HeexSource do
   `class={...}` and `class="..."` attribute bodies respectively, tracking
   string/escape state so braces nested inside strings or escaped quotes are
   handled correctly.
+
+  `find_attr_bodies/3` finds every occurrence of a name-bounded attribute
+  prefix (e.g. `class={` that is not a suffix of `wrapper_class=`) and returns
+  `[{line_offset, content}]` pairs.
 
   ## Tag walking
 
@@ -57,14 +62,14 @@ defmodule Rbtz.CredoChecks.HeexSource do
     {ast, [{heex, line_fn} | acc]}
   end
 
-  defp collect({:embed_templates, meta, [pattern | _]} = ast, acc, source_file)
+  defp collect({:embed_templates, meta, [pattern | rest]} = ast, acc, source_file)
        when is_binary(pattern) do
     call_line = meta[:line] || 1
     line_fn = fn _off -> call_line end
 
     base_dir = Path.dirname(source_file.filename)
-
-    glob = Path.join(base_dir, pattern <> ".html.heex")
+    root = embed_root(rest, base_dir)
+    glob = Path.join(root, pattern <> ".html.heex")
 
     acc =
       glob
@@ -82,6 +87,19 @@ defmodule Rbtz.CredoChecks.HeexSource do
 
   defp collect(ast, acc, _source_file), do: {ast, acc}
 
+  defp embed_root(rest, base_dir) do
+    opts = List.first(rest)
+
+    if is_list(opts) do
+      case Keyword.get(opts, :root) do
+        root when is_binary(root) -> Path.expand(root, base_dir)
+        _ -> base_dir
+      end
+    else
+      base_dir
+    end
+  end
+
   @doc """
   Captures the content of a `{...}` interpolation body.
 
@@ -94,7 +112,6 @@ defmodule Rbtz.CredoChecks.HeexSource do
     capture_interp(input, <<>>, 1, nil)
   end
 
-  # Inside a string: handle escape, handle closing quote, consume.
   defp capture_interp(<<?\\, c, rest::binary>>, acc, depth, str) when str != nil do
     capture_interp(rest, <<acc::binary, ?\\, c>>, depth, str)
   end
@@ -107,7 +124,6 @@ defmodule Rbtz.CredoChecks.HeexSource do
     capture_interp(rest, <<acc::binary, c>>, depth, str)
   end
 
-  # Outside strings: track `{`, `}`, and quote entry.
   defp capture_interp(<<?", rest::binary>>, acc, depth, nil) do
     capture_interp(rest, <<acc::binary, ?">>, depth, ?")
   end
@@ -147,7 +163,112 @@ defmodule Rbtz.CredoChecks.HeexSource do
   end
 
   defp capture_str(<<?", _rest::binary>>, acc), do: {:ok, acc}
-  defp capture_str(<<c, rest::binary>>, acc), do: capture_str(rest, <<acc::binary, c>>)
+
+  defp capture_str(<<c, rest::binary>>, acc) do
+    capture_str(rest, <<acc::binary, c>>)
+  end
+
+  @doc """
+  Finds every name-bounded occurrence of `prefix` in `heex` and returns
+  `[{line_offset, content}]` for successfully captured attribute bodies.
+
+  `prefix` is typically `"class={"` or `~s(class=")`. A match is accepted only
+  when it is not a suffix of a longer attribute name (`wrapper_class=`, etc.).
+  """
+  def find_attr_bodies(heex, prefix, capture_fn)
+      when is_binary(heex) and is_binary(prefix) and is_function(capture_fn, 1) do
+    heex
+    |> :binary.matches(prefix)
+    |> Enum.flat_map(&capture_attr_match(heex, prefix, capture_fn, &1))
+  end
+
+  defp capture_attr_match(heex, prefix, capture_fn, {start, _len}) do
+    if attr_name_boundary?(heex, start) do
+      open_pos = start + byte_size(prefix)
+      rest = binary_part(heex, open_pos, byte_size(heex) - open_pos)
+
+      case capture_fn.(rest) do
+        {:ok, content} ->
+          offset = heex |> binary_part(0, start) |> count_newlines()
+          [{offset, content}]
+
+        :unterminated ->
+          []
+      end
+    else
+      []
+    end
+  end
+
+  defp attr_name_boundary?(_heex, 0), do: true
+
+  defp attr_name_boundary?(heex, start) do
+    <<prev>> = binary_part(heex, start - 1, 1)
+    prev not in ?a..?z and prev not in ?A..?Z and prev not in ?0..?9 and prev not in [?_, ?-]
+  end
+
+  @doc """
+  Returns `true` when `binary` contains a comma at brace/bracket/paren depth 0
+  and outside string literals. Used by class-attribute formatting checks.
+  """
+  def top_level_comma?(binary) when is_binary(binary) do
+    top_level_comma?(
+      binary,
+      %{brace_depth: 0, bracket_depth: 0, paren_depth: 0, str: nil}
+    )
+  end
+
+  defp top_level_comma?(<<>>, _s), do: false
+
+  defp top_level_comma?(<<?\\, _c, rest::binary>>, %{str: str} = s) when str != nil do
+    top_level_comma?(rest, s)
+  end
+
+  defp top_level_comma?(<<c, rest::binary>>, %{str: str} = s) when str != nil and c == str do
+    top_level_comma?(rest, %{s | str: nil})
+  end
+
+  defp top_level_comma?(<<_c, rest::binary>>, %{str: str} = s) when str != nil do
+    top_level_comma?(rest, s)
+  end
+
+  defp top_level_comma?(<<?", rest::binary>>, s), do: top_level_comma?(rest, %{s | str: ?"})
+
+  defp top_level_comma?(<<?', rest::binary>>, s), do: top_level_comma?(rest, %{s | str: ?'})
+
+  defp top_level_comma?(<<?{, rest::binary>>, %{brace_depth: d} = s) do
+    top_level_comma?(rest, %{s | brace_depth: d + 1})
+  end
+
+  defp top_level_comma?(<<?}, rest::binary>>, %{brace_depth: d} = s) do
+    top_level_comma?(rest, %{s | brace_depth: d - 1})
+  end
+
+  defp top_level_comma?(<<?[, rest::binary>>, %{bracket_depth: d} = s) do
+    top_level_comma?(rest, %{s | bracket_depth: d + 1})
+  end
+
+  defp top_level_comma?(<<?], rest::binary>>, %{bracket_depth: d} = s) do
+    top_level_comma?(rest, %{s | bracket_depth: d - 1})
+  end
+
+  defp top_level_comma?(<<?(, rest::binary>>, %{paren_depth: d} = s) do
+    top_level_comma?(rest, %{s | paren_depth: d + 1})
+  end
+
+  defp top_level_comma?(<<?), rest::binary>>, %{paren_depth: d} = s) do
+    top_level_comma?(rest, %{s | paren_depth: d - 1})
+  end
+
+  defp top_level_comma?(<<?,, _rest::binary>>, %{
+         brace_depth: 0,
+         bracket_depth: 0,
+         paren_depth: 0,
+         str: nil
+       }),
+       do: true
+
+  defp top_level_comma?(<<_c, rest::binary>>, s), do: top_level_comma?(rest, s)
 
   @doc """
   Walks a HEEx template line-by-line and returns one record per fully-opened
@@ -162,57 +283,60 @@ defmodule Rbtz.CredoChecks.HeexSource do
   Returns `[{open_line, trigger, presence_map}]` in source order, where
   `presence_map` has one boolean per key in `attr_detectors`.
 
+  When a tag closes mid-line, the remainder is re-scanned for further open tags.
+
   Limitation: splits a tag at the first `>` on any line, so `>` characters
   inside attribute strings can prematurely close a tag. This matches the
   behaviour of the pre-extraction per-check scanners.
   """
   def walk_tags({contents, line_fn}, detect_open, attr_detectors)
       when is_binary(contents) and is_function(detect_open, 1) and is_list(attr_detectors) do
-    keys = Enum.map(attr_detectors, &elem(&1, 0))
-    empty = Map.new(keys, &{&1, false})
+    empty = Map.new(attr_detectors, fn {k, _} -> {k, false} end)
+    opts = %{detect_open: detect_open, attr_detectors: attr_detectors, empty: empty}
 
     contents
     |> String.split("\n")
     |> Enum.with_index()
     |> Enum.reduce({nil, []}, fn {line, idx}, {state, records} ->
-      process_tag_line(line, line_fn.(idx), state, records, detect_open, attr_detectors, empty)
+      process_tag_line(line, line_fn.(idx), state, records, opts)
     end)
     |> elem(1)
     |> Enum.reverse()
   end
 
-  defp process_tag_line(line, line_no, nil, records, detect_open, attr_detectors, empty) do
-    case detect_open.(line) do
+  defp process_tag_line(line, line_no, nil, records, opts) do
+    case opts.detect_open.(line) do
       nil ->
         {nil, records}
 
       {trigger, rest} ->
-        step_tag(rest, line_no, trigger, empty, records, attr_detectors)
+        step_tag(rest, line_no, line_no, trigger, opts.empty, records, opts)
     end
   end
 
-  defp process_tag_line(line, _line_no, {open_line, trigger, presence}, records, _, attrs, _) do
-    step_tag(line, open_line, trigger, presence, records, attrs)
+  defp process_tag_line(line, line_no, {open_line, trigger, presence}, records, opts) do
+    step_tag(line, line_no, open_line, trigger, presence, records, opts)
   end
 
-  defp step_tag(text, open_line, trigger, presence, records, attr_detectors) do
-    presence = update_presence(presence, text, attr_detectors)
-
+  defp step_tag(text, line_no, open_line, trigger, presence, records, opts) do
     case String.split(text, ">", parts: 2) do
-      [_only] ->
+      [only] ->
+        presence = update_presence(presence, only, opts.attr_detectors)
         {{open_line, trigger, presence}, records}
 
-      [_before, _after] ->
-        {nil, [{open_line, trigger, presence} | records]}
+      [before, after_text] ->
+        presence = update_presence(presence, before, opts.attr_detectors)
+        records = [{open_line, trigger, presence} | records]
+        process_tag_line(after_text, line_no, nil, records, opts)
     end
   end
 
   defp update_presence(presence, text, attr_detectors) do
     Enum.reduce(attr_detectors, presence, fn {key, detector}, acc ->
-      cond do
-        Map.get(acc, key) -> acc
-        detector.(text) -> Map.put(acc, key, true)
-        true -> acc
+      if not Map.get(acc, key) and detector.(text) do
+        Map.put(acc, key, true)
+      else
+        acc
       end
     end)
   end

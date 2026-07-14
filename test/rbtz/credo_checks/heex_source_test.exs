@@ -66,10 +66,45 @@ defmodule Rbtz.CredoChecks.HeexSourceTest do
       assert line_fn.(999) == 3
     end
 
-    test "skips files that cannot be read" do
-      # embed_templates references a pattern that matches nothing;
-      # no files are opened so no crash, but we also exercise the glob path
-      # returning an empty list.
+    test "honours embed_templates root: option" do
+      templates_dir = Path.join(@tmp, "templates")
+      File.mkdir_p!(templates_dir)
+      templates_dir |> Path.join("card.html.heex") |> File.write!("<p>card</p>")
+
+      src =
+        Credo.SourceFile.parse(
+          """
+          defmodule MyLive do
+            use Phoenix.Component
+            embed_templates "*", root: "templates"
+          end
+          """,
+          Path.join(@tmp, "my_live.ex")
+        )
+
+      assert [{contents, _line_fn}] = HeexSource.templates(src)
+      assert contents == "<p>card</p>"
+    end
+
+    test "ignores non-binary embed_templates root" do
+      @tmp |> Path.join("card.html.heex") |> File.write!("<p>here</p>")
+
+      src =
+        Credo.SourceFile.parse(
+          """
+          defmodule MyLive do
+            use Phoenix.Component
+            embed_templates "*", root: :not_a_path
+          end
+          """,
+          Path.join(@tmp, "my_live.ex")
+        )
+
+      assert [{contents, _}] = HeexSource.templates(src)
+      assert contents == "<p>here</p>"
+    end
+
+    test "returns empty when embed_templates glob matches nothing" do
       src =
         Credo.SourceFile.parse(
           """
@@ -143,6 +178,29 @@ defmodule Rbtz.CredoChecks.HeexSourceTest do
 
     test "returns :unterminated on missing close" do
       assert HeexSource.capture_string("no close") == :unterminated
+    end
+  end
+
+  describe "find_attr_bodies/3" do
+    test "matches bare class= but not wrapper_class= suffixes" do
+      heex = ~s(<div class={"a"} wrapper_class={"b"}>)
+
+      assert [{0, ~s("a")}] =
+               HeexSource.find_attr_bodies(heex, "class={", &HeexSource.capture_interpolation/1)
+    end
+
+    test "matches class= at the start of the template" do
+      assert [{0, ~s("solo")}] =
+               HeexSource.find_attr_bodies(
+                 ~s(class={"solo"}),
+                 "class={",
+                 &HeexSource.capture_interpolation/1
+               )
+    end
+
+    test "detects top-level commas" do
+      assert HeexSource.top_level_comma?(~s(if @c, do: "a", else: "b"))
+      refute HeexSource.top_level_comma?(~s(["a", "b"]))
     end
   end
 
@@ -234,6 +292,28 @@ defmodule Rbtz.CredoChecks.HeexSourceTest do
     test "returns [] when no opens are detected" do
       template = {"no tags here\n", &(&1 + 1)}
       assert HeexSource.walk_tags(template, fn _ -> nil end, []) == []
+    end
+
+    test "re-scans remainder after a same-line tag close" do
+      template = {~s(<div id="a"><span phx-hook="Y">\n), &(&1 + 1)}
+
+      records =
+        HeexSource.walk_tags(
+          template,
+          fn line ->
+            case Regex.run(~r/<[A-Za-z][A-Za-z0-9._-]*/, line, return: :index) do
+              [{s, l}] -> {"<", String.slice(line, (s + l)..-1//1) || ""}
+              _ -> nil
+            end
+          end,
+          id: &String.contains?(&1, "id="),
+          hook: &String.contains?(&1, "phx-hook")
+        )
+
+      assert records == [
+               {1, "<", %{id: true, hook: false}},
+               {1, "<", %{id: false, hook: true}}
+             ]
     end
 
     # Pins the documented limitation: `>` inside an attribute string on one

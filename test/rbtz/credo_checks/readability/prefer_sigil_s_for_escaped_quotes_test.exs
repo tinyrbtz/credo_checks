@@ -93,6 +93,39 @@ defmodule Rbtz.CredoChecks.Readability.PreferSigilSForEscapedQuotesTest do
     |> refute_issues()
   end
 
+  test "does not treat quotes inside interpolation as string terminators" do
+    ~S"""
+    defmodule MyMod do
+      def msg(x), do: "say #{foo("x")} and \"y\""
+    end
+    """
+    |> to_source_file()
+    |> run_check(PreferSigilSForEscapedQuotes)
+    |> assert_issue()
+  end
+
+  test "tracks nested braces inside interpolation while scanning" do
+    ~S"""
+    defmodule MyMod do
+      def msg, do: "outer #{Map.get(%{a: 1}, :a)} and \"q\""
+    end
+    """
+    |> to_source_file()
+    |> run_check(PreferSigilSForEscapedQuotes)
+    |> assert_issue()
+  end
+
+  test "does not flag an empty string" do
+    """
+    defmodule MyMod do
+      def msg, do: ""
+    end
+    """
+    |> to_source_file()
+    |> run_check(PreferSigilSForEscapedQuotes)
+    |> refute_issues()
+  end
+
   test "still flags interpolated strings with escaped quotes" do
     ~S"""
     defmodule MyMod do

@@ -52,32 +52,14 @@ defmodule Rbtz.CredoChecks.Warning.StringInterpolationInClassAttr do
 
   defp scan_template({heex, line_fn}, ctx) do
     bodies =
-      find_bodies(heex, "class={", &HeexSource.capture_interpolation/1) ++
-        find_bodies(heex, ~s(class="), &HeexSource.capture_string/1)
+      HeexSource.find_attr_bodies(heex, "class={", &HeexSource.capture_interpolation/1) ++
+        HeexSource.find_attr_bodies(heex, ~s(class="), &HeexSource.capture_string/1)
 
     Enum.reduce(bodies, ctx, fn {offset, body}, ctx ->
       if interpolates?(body) do
         put_issue(ctx, issue_for(ctx, line_fn.(offset)))
       else
         ctx
-      end
-    end)
-  end
-
-  defp find_bodies(heex, prefix, capture_fn) do
-    heex
-    |> :binary.matches(prefix)
-    |> Enum.flat_map(fn {start, _len} ->
-      open_pos = start + byte_size(prefix)
-      rest = binary_part(heex, open_pos, byte_size(heex) - open_pos)
-
-      case capture_fn.(rest) do
-        {:ok, body} ->
-          offset = heex |> binary_part(0, start) |> HeexSource.count_newlines()
-          [{offset, body}]
-
-        :unterminated ->
-          []
       end
     end)
   end

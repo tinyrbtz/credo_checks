@@ -103,7 +103,7 @@ defmodule Rbtz.CredoChecks.Readability.ModuleAttrCollectionFormattingTest do
     test "struct with a dotted alias" do
       """
       defmodule MyMod do
-        @config %MyApp.Config{
+        @config %Foo.Bar{
           host: "localhost", port: 4000,
           scheme: :http
         }

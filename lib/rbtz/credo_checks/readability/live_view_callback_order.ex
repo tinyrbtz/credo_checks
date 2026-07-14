@@ -102,16 +102,24 @@ defmodule Rbtz.CredoChecks.Readability.LiveViewCallbackOrder do
     end
   end
 
-  defp def_bucket({op, _meta, [{name, name_meta, _args} | _]})
-       when op in [:def, :defp] and is_atom(name) do
-    if bucket = @callback_buckets[name] do
-      [{name, bucket, name_meta[:line]}]
-    else
-      []
+  defp def_bucket({op, _meta, [head | _]}) when op in [:def, :defp] do
+    case unwrap_when(head) do
+      {name, name_meta, _args} when is_atom(name) ->
+        if bucket = @callback_buckets[name] do
+          [{name, bucket, name_meta[:line]}]
+        else
+          []
+        end
+
+      _ ->
+        []
     end
   end
 
   defp def_bucket(_), do: []
+
+  defp unwrap_when({:when, _meta, [call | _]}), do: call
+  defp unwrap_when(call), do: call
 
   defp find_first_violation(defs) do
     result =

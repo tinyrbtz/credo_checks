@@ -76,6 +76,22 @@ defmodule Rbtz.CredoChecks.Warning.SetMimicGlobalTest do
     |> assert_issue()
   end
 
+  test "flags `setup [:set_mimic_global]` (list form)" do
+    """
+    defmodule MyTest do
+      use ExUnit.Case
+      use Mimic
+
+      setup [:set_mimic_global, :verify_on_exit!]
+
+      test "x", do: :ok
+    end
+    """
+    |> to_source_file("test/my_test.exs")
+    |> run_check(SetMimicGlobal)
+    |> assert_issue()
+  end
+
   test "does not flag in non-test files" do
     """
     defmodule M do

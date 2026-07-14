@@ -24,10 +24,10 @@ defmodule Rbtz.CredoChecks.Warning.ReqTestWithoutVerifyOnExit do
       # Bad
 
           defmodule MyTest do
-            use MyApp.DataCase, async: true
+            use ExUnit.Case, async: true
 
             test "fetches data" do
-              Req.Test.expect(MyApp.HTTP, fn conn -> ... end)
+              Req.Test.expect(HTTPClient, fn conn -> ... end)
               # ...
             end
           end
@@ -35,22 +35,24 @@ defmodule Rbtz.CredoChecks.Warning.ReqTestWithoutVerifyOnExit do
       # Good
 
           defmodule MyTest do
-            use MyApp.DataCase, async: true
+            use ExUnit.Case, async: true
 
             setup :verify_on_exit!
 
             test "fetches data" do
-              Req.Test.expect(MyApp.HTTP, fn conn -> ... end)
+              Req.Test.expect(HTTPClient, fn conn -> ... end)
               # ...
             end
           end
       """
     ]
 
+  alias Rbtz.CredoChecks.TestSource
+
   @doc false
   @impl Credo.Check
   def run(%SourceFile{} = source_file, params) do
-    with true <- test_file?(source_file.filename),
+    with true <- TestSource.test_file?(source_file.filename),
          {:ok, ast} <- Credo.Code.ast(source_file),
          line_no when is_integer(line_no) <- find_req_test_usage(ast),
          false <- has_verify_on_exit_in_setup?(ast) do
@@ -61,12 +63,6 @@ defmodule Rbtz.CredoChecks.Warning.ReqTestWithoutVerifyOnExit do
     end
   end
 
-  defp test_file?(filename) do
-    expanded = Path.expand(filename)
-    String.ends_with?(filename, "_test.exs") or String.contains?(expanded, "/test/")
-  end
-
-  # Returns the line number of the first Req.Test.stub/expect call, or nil.
   defp find_req_test_usage(ast) do
     {_ast, line} =
       Macro.prewalk(ast, nil, fn
@@ -109,6 +105,7 @@ defmodule Rbtz.CredoChecks.Warning.ReqTestWithoutVerifyOnExit do
   defp setup_args_have_verify?(_), do: false
 
   defp arg_has_verify?(:verify_on_exit!), do: true
+
   defp arg_has_verify?({:verify_on_exit!, _, ctx}) when is_atom(ctx), do: true
 
   defp arg_has_verify?(list) when is_list(list) do

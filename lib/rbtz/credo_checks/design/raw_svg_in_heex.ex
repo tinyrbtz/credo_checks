@@ -7,11 +7,10 @@ defmodule Rbtz.CredoChecks.Design.RawSvgInHeex do
       check: """
       Forbids raw `<svg>` tags in HEEx templates.
 
-      Icons should come from the `FyrUI.SVG` module via `<.svg_lucide_*>`
-      function components (or `<.svg_hero_*>` when a Lucide variant is not
-      available). The component approach keeps icon naming consistent across
-      the app, supports compile-time icon-set verification, and avoids
-      copy-pasting raw SVG markup across files.
+      Icons should come from a shared icon function component (for example
+      `<.icon name="search" />`) rather than inline SVG markup. The component
+      approach keeps icon naming consistent, supports compile-time icon-set
+      verification, and avoids copy-pasting raw SVG across files.
 
       The check inspects every `~H` sigil and every `.heex` template referenced
       via `embed_templates`. Detection is line-by-line: a `<svg` whose first
@@ -25,7 +24,7 @@ defmodule Rbtz.CredoChecks.Design.RawSvgInHeex do
 
       # Good
 
-          <.svg_lucide_search />
+          <.icon name="search" />
       """
     ]
 
@@ -59,7 +58,7 @@ defmodule Rbtz.CredoChecks.Design.RawSvgInHeex do
   defp issue_for(ctx, line_no) do
     format_issue(ctx,
       message:
-        "Use a `FyrUI.SVG` icon component (e.g. `<.svg_lucide_search />`) instead of raw `<svg>` markup.",
+        ~s|Use an icon function component (e.g. `<.icon name="search" />`) instead of raw `<svg>` markup.|,
       trigger: "<svg",
       line_no: line_no
     )

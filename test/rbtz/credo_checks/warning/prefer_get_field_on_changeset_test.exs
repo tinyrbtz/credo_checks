@@ -72,6 +72,36 @@ defmodule Rbtz.CredoChecks.Warning.PreferGetFieldOnChangesetTest do
     |> assert_issue()
   end
 
+  test "flags when Changeset is pulled in via multi-alias `Ecto.{}`" do
+    ~S'''
+    defmodule MyMod do
+      alias Ecto.{Changeset, Query}
+
+      def name(changeset) do
+        changeset.field
+      end
+    end
+    '''
+    |> to_source_file()
+    |> run_check(PreferGetFieldOnChangeset)
+    |> assert_issue()
+  end
+
+  test "does not flag multi-alias of Ecto without Changeset" do
+    ~S'''
+    defmodule MyMod do
+      alias Ecto.{Query, Schema}
+
+      def name(changeset) do
+        changeset.field
+      end
+    end
+    '''
+    |> to_source_file()
+    |> run_check(PreferGetFieldOnChangeset)
+    |> refute_issues()
+  end
+
   test "does not flag when Ecto.Changeset is not imported or aliased" do
     ~S'''
     defmodule MyMod do

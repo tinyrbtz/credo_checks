@@ -215,7 +215,9 @@ defmodule Rbtz.CredoChecks.Readability.PreferCapture do
 
   # Allowed top-level body shapes: binary op, unary op, remote call, local call.
   defp shape_ok?({op, _, [_, _]}) when op in @binary_ops, do: true
+
   defp shape_ok?({op, _, [_]}) when op in @unary_ops, do: true
+
   defp shape_ok?({{:., _, _}, _, args}) when is_list(args), do: true
 
   defp shape_ok?({fname, _, args})
@@ -268,7 +270,7 @@ defmodule Rbtz.CredoChecks.Readability.PreferCapture do
   end
 
   defp render_suggestion(arg_names, body) do
-    case band_a(arg_names, body) do
+    case exact_call_capture(arg_names, body) do
       {:ok, capture} -> capture
       :skip -> render_rewrite(arg_names, body)
     end
@@ -278,7 +280,7 @@ defmodule Rbtz.CredoChecks.Readability.PreferCapture do
   # Operator bodies (`fn x -> not x end`, `fn x, y -> x + y end`) fall through
   # to the rewrite path so they render as `&(not &1)` / `&(&1 + &2)` rather
   # than the terse-but-unusual `&not/1` / `&+/2` forms.
-  defp band_a(arg_names, {fname, _, call_args})
+  defp exact_call_capture(arg_names, {fname, _, call_args})
        when is_atom(fname) and is_list(call_args) and
               fname not in @disallowed_in_body and
               fname not in @non_callable_top_level and
@@ -293,7 +295,7 @@ defmodule Rbtz.CredoChecks.Readability.PreferCapture do
   end
 
   # Remote call pass-through: `fn x -> Mod.foo(x) end` → `&Mod.foo/1`.
-  defp band_a(arg_names, {{:., _, [mod, fname]}, _, call_args})
+  defp exact_call_capture(arg_names, {{:., _, [mod, fname]}, _, call_args})
        when is_atom(fname) and is_list(call_args) do
     with true <- call_args_match_exactly?(call_args, arg_names),
          true <- Regex.match?(@identifier_regex, Atom.to_string(fname)),
@@ -304,7 +306,7 @@ defmodule Rbtz.CredoChecks.Readability.PreferCapture do
     end
   end
 
-  defp band_a(_, _), do: :skip
+  defp exact_call_capture(_, _), do: :skip
 
   defp call_args_match_exactly?(call_args, arg_names) do
     if length(call_args) == length(arg_names) do

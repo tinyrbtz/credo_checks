@@ -27,12 +27,12 @@ defmodule Rbtz.CredoChecks.Design.RawSvgInHeexTest do
     |> assert_issue()
   end
 
-  test "does not flag FyrUI svg components" do
+  test "does not flag icon function components" do
     ~S'''
     defmodule MyLive do
       def render(assigns) do
         ~H"""
-        <.svg_lucide_search />
+        <.icon name="search" />
         """
       end
     end

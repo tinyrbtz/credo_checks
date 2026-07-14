@@ -15,14 +15,12 @@ defmodule Rbtz.CredoChecks.Design.PreferLogsterInLibTest do
   test "flags `Logger.info` in lib/" do
     """
     defmodule M do
-      require Logger
-
       def go, do: Logger.info("hi")
     end
     """
     |> to_source_file("lib/m.ex")
     |> run_check(PreferLogsterInLib)
-    |> assert_issues()
+    |> assert_issue(fn issue -> assert issue.trigger == "Logger.info" end)
   end
 
   test "flags `require Logger` in lib/" do
@@ -65,13 +63,12 @@ defmodule Rbtz.CredoChecks.Design.PreferLogsterInLibTest do
     for level <- ~w(debug info notice warning warn error critical alert emergency log) do
       """
       defmodule M do
-        require Logger
         def go, do: Logger.#{level}("hi")
       end
       """
       |> to_source_file("lib/m.ex")
       |> run_check(PreferLogsterInLib)
-      |> assert_issues()
+      |> assert_issue(fn issue -> assert issue.trigger == "Logger.#{level}" end)
     end
   end
 

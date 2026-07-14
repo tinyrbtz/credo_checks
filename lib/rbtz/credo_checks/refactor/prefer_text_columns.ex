@@ -24,10 +24,10 @@ defmodule Rbtz.CredoChecks.Refactor.PreferTextColumns do
           add :name, :text
           modify :description, :text
 
-      Like all `Design` issues, this one is not a technical concern.
-      It encodes a project-wide convention; disable per-line with
-      `# credo:disable-for-next-line` when a fixed-length column is genuinely
-      required (e.g. legacy schemas, foreign keys to immutable identifiers).
+      This encodes a project-wide convention rather than a technical
+      concern; disable per-line with `# credo:disable-for-next-line` when a
+      fixed-length column is genuinely required (e.g. legacy schemas, foreign
+      keys to immutable identifiers).
       """
     ]
 

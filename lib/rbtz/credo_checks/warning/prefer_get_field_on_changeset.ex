@@ -73,6 +73,10 @@ defmodule Rbtz.CredoChecks.Warning.PreferGetFieldOnChangeset do
         when kw in [:alias, :import] ->
           {node, true}
 
+        {kw, _meta, [{{:., _, [{:__aliases__, _, [:Ecto]}, :{}]}, _, aliases} | _]} = node, _acc
+        when kw in [:alias, :import] ->
+          {node, aliases_include_changeset?(aliases)}
+
         node, acc ->
           {node, acc}
       end)
@@ -80,7 +84,13 @@ defmodule Rbtz.CredoChecks.Warning.PreferGetFieldOnChangeset do
     found?
   end
 
-  # changeset.data.field / changeset.changes.field
+  defp aliases_include_changeset?(aliases) when is_list(aliases) do
+    Enum.any?(aliases, fn
+      {:__aliases__, _, [:Changeset]} -> true
+      _ -> false
+    end)
+  end
+
   defp walk(
          {{:., _, [{{:., _, [{:changeset, _, ctx}, layer]}, _, []}, field]}, meta, []} = ast,
          walker_ctx
@@ -90,13 +100,11 @@ defmodule Rbtz.CredoChecks.Warning.PreferGetFieldOnChangeset do
     {ast, put_issue(walker_ctx, issue_for(walker_ctx, :compound, meta, {layer, field}))}
   end
 
-  # changeset.field (schema fields only — struct fields are allowlisted)
   defp walk({{:., _, [{:changeset, _, ctx}, field]}, meta, []} = ast, walker_ctx)
        when is_atom(ctx) and is_atom(field) and field not in @changeset_struct_fields do
     {ast, put_issue(walker_ctx, issue_for(walker_ctx, :dot, meta, field))}
   end
 
-  # changeset[:key]
   defp walk({{:., _, [Access, :get]}, meta, [{:changeset, _, ctx}, key]} = ast, walker_ctx)
        when is_atom(ctx) do
     {ast, put_issue(walker_ctx, issue_for(walker_ctx, :access, meta, key))}
