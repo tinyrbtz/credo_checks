@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file.
 
+## Unreleased
+
+- **New check** `Rbtz.CredoChecks.Readability.FunctionSpacing` — requires
+  consistent blank-line spacing around function header blocks (`@doc`, `@impl`,
+  `@spec`, `@dialyzer`, `@deprecated`, `@since`, `@decorate` /
+  `@decorate_all`, plus full-line comments attached above/below those attrs).
+  The header block must be preceded by a blank line (unless the line above is
+  the `defmodule` / `defprotocol` / `defimpl` opener). Header attributes may
+  stack without blanks between them. Multi-clause functions (same name + arity;
+  `def` / `defp` / `defmacro` / `defmacrop`) are compact when every clause is
+  single-line, and separated (blank under the header and between clauses) when
+  any clause is multi-line. Single-clause functions and orphan headers are left
+  alone for the density rule.
+
 ## 0.8.0
 
 - **New check** `Rbtz.CredoChecks.Refactor.PreferWithOverCase` — flags a
