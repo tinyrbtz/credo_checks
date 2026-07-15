@@ -71,17 +71,13 @@ defmodule Rbtz.CredoChecks.Readability.RedundantClassAttrWrapping do
 
   defp scan_template({heex, line_fn}, ctx) do
     heex
-    |> find_class_interps()
+    |> HeexSource.find_attr_bodies("class={", &HeexSource.capture_interpolation/1)
     |> Enum.reduce(ctx, fn {offset, content}, ctx ->
       case classify(content) do
         :ok -> ctx
         kind -> put_issue(ctx, issue_for(ctx, kind, line_fn.(offset)))
       end
     end)
-  end
-
-  defp find_class_interps(heex) do
-    HeexSource.find_attr_bodies(heex, "class={", &HeexSource.capture_interpolation/1)
   end
 
   defp classify(content) do

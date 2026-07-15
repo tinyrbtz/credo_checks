@@ -12,7 +12,6 @@ defmodule Rbtz.CredoChecks.MigrationSource do
   @doc """
   Returns `true` when `filename` looks like an Ecto migration file.
   """
-
   def migration_file?(filename) when is_binary(filename) do
     path = Path.expand(filename)
     "migrations" in Path.split(path) and String.ends_with?(path, ".exs")

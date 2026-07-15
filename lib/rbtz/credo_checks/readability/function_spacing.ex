@@ -107,7 +107,12 @@ defmodule Rbtz.CredoChecks.Readability.FunctionSpacing do
 
     case Credo.Code.ast(source_file) do
       {:ok, ast} ->
-        {_, ctx} = Macro.prewalk(ast, ctx, &walk_module/2)
+        lines =
+          source_file
+          |> SourceFile.lines()
+          |> Map.new(fn {n, text} -> {n, String.trim(text)} end)
+
+        {_, ctx} = Macro.prewalk(ast, ctx, &walk_module(&1, &2, lines))
         Enum.reverse(ctx.issues)
 
       _ ->
@@ -115,34 +120,36 @@ defmodule Rbtz.CredoChecks.Readability.FunctionSpacing do
     end
   end
 
-  defp walk_module({form, _meta, args} = ast, ctx) when form in @module_forms do
+  defp walk_module({form, _meta, args} = ast, ctx, lines) when form in @module_forms do
     case List.last(args) do
-      [do: body] -> {ast, check_body(body, ctx)}
+      [do: body] -> {ast, check_body(body, ctx, lines)}
       _ -> {ast, ctx}
     end
   end
 
-  defp walk_module(ast, ctx), do: {ast, ctx}
+  defp walk_module(ast, ctx, _lines), do: {ast, ctx}
 
-  defp check_body({:__block__, _meta, stmts}, ctx) when is_list(stmts), do: scan(stmts, nil, ctx)
-  defp check_body(stmt, ctx), do: scan([stmt], nil, ctx)
+  defp check_body({:__block__, _meta, stmts}, ctx, lines) when is_list(stmts),
+    do: scan(stmts, nil, ctx, lines)
 
-  defp scan([], _prev, ctx), do: ctx
+  defp check_body(stmt, ctx, lines), do: scan([stmt], nil, ctx, lines)
 
-  defp scan([stmt | rest] = from, prev, ctx) do
+  defp scan([], _prev, ctx, _lines), do: ctx
+
+  defp scan([stmt | rest] = from, prev, ctx, lines) do
     ctx =
       cond do
         header_attr?(stmt) and not header_attr?(prev) ->
-          check_header_block(ctx, stmt, from)
+          check_header_block(ctx, stmt, from, prev, lines)
 
         def_group_start?(stmt, prev) ->
-          maybe_density(ctx, nil, from)
+          maybe_density(ctx, nil, from, lines)
 
         true ->
           ctx
       end
 
-    scan(rest, stmt, ctx)
+    scan(rest, stmt, ctx, lines)
   end
 
   defp def_group_start?(stmt, prev) do
@@ -150,13 +157,12 @@ defmodule Rbtz.CredoChecks.Readability.FunctionSpacing do
     key != nil and not header_attr?(prev) and key != def_key(prev)
   end
 
-  defp check_header_block(ctx, {:@, meta, [{name, _, _}]}, from_header) do
-    source = ctx.source_file
+  defp check_header_block(ctx, {:@, meta, [{name, _, _}]}, from_header, prev, lines) do
     attr_line = meta[:line]
-    block_start = expand_comments_up(source, attr_line)
+    block_start = expand_comments(lines, attr_line, -1, &(&1 >= 1))
 
     ctx =
-      if separator_above?(source, block_start) do
+      if separator_above?(lines, block_start, prev) do
         ctx
       else
         trigger = if block_start == attr_line, do: "@#{name}", else: "#"
@@ -172,28 +178,28 @@ defmodule Rbtz.CredoChecks.Readability.FunctionSpacing do
       end
 
     {headers, after_headers} = Enum.split_while(from_header, &header_attr?/1)
-    maybe_density(ctx, List.last(headers), after_headers)
+    maybe_density(ctx, List.last(headers), after_headers, lines)
   end
 
-  defp maybe_density(ctx, header, stmts) do
+  defp maybe_density(ctx, header, stmts, lines) do
     case clauses_for(stmts) do
       [] ->
         ctx
 
       [first | _] = clauses ->
         ctx
-        |> check_header_flush(header, first)
-        |> check_clause_gaps(clauses)
+        |> check_header_flush(header, first, lines)
+        |> check_clause_gaps(clauses, lines)
     end
   end
 
-  defp check_header_flush(ctx, nil, _first), do: ctx
+  defp check_header_flush(ctx, nil, _first, _lines), do: ctx
 
-  defp check_header_flush(ctx, header, first) do
-    source = ctx.source_file
-    header_end = expand_comments_down(source, end_line(header), start_line(first))
+  defp check_header_flush(ctx, header, first, lines) do
+    header_end =
+      expand_comments(lines, end_line(header), 1, &(&1 < start_line(first)))
 
-    if blank_between?(source, header_end, start_line(first)) do
+    if blank_between?(lines, header_end, start_line(first)) do
       density_issue(
         ctx,
         first,
@@ -204,17 +210,16 @@ defmodule Rbtz.CredoChecks.Readability.FunctionSpacing do
     end
   end
 
-  defp check_clause_gaps(ctx, [_single]), do: ctx
+  defp check_clause_gaps(ctx, [_single], _lines), do: ctx
 
-  defp check_clause_gaps(ctx, [first | _] = clauses) do
-    source = ctx.source_file
+  defp check_clause_gaps(ctx, [first | _] = clauses, lines) do
     want_blank? = Enum.any?(clauses, &multi_line?/1)
 
     gap_mismatch? =
       clauses
       |> Enum.chunk_every(2, 1, :discard)
       |> Enum.any?(fn [a, b] ->
-        blank_between?(source, end_line(a), start_line(b)) != want_blank?
+        blank_between?(lines, end_line(a), start_line(b)) != want_blank?
       end)
 
     if gap_mismatch? do
@@ -257,50 +262,34 @@ defmodule Rbtz.CredoChecks.Readability.FunctionSpacing do
   defp header_attr?({:@, _meta, [{name, _, _}]}) when name in @header_attrs, do: true
   defp header_attr?(_), do: false
 
-  defp separator_above?(source, line_no) do
-    previous = trimmed_line(source, line_no - 1)
-    previous == "" or String.match?(previous, ~r/^(defmodule|defprotocol|defimpl)\b/)
-  end
+  # First body statement (`prev == nil`) sits under the module opener — no blank
+  # required. Comments are not AST statements, so a top-of-body comment+header
+  # still has `prev == nil`.
+  defp separator_above?(_lines, _block_start, nil), do: true
+  defp separator_above?(lines, block_start, _prev), do: Map.get(lines, block_start - 1, "") == ""
 
-  defp expand_comments_up(source, line_no) do
-    prev = line_no - 1
+  defp expand_comments(lines, line_no, step, still?) do
+    next = line_no + step
 
-    if prev >= 1 and comment_line?(source, prev) do
-      expand_comments_up(source, prev)
+    if still?.(next) and comment_line?(lines, next) do
+      expand_comments(lines, next, step, still?)
     else
       line_no
     end
   end
 
-  defp expand_comments_down(source, line_no, stop_before) do
-    next = line_no + 1
-
-    if next < stop_before and comment_line?(source, next) do
-      expand_comments_down(source, next, stop_before)
-    else
-      line_no
-    end
+  defp comment_line?(lines, line_no) do
+    lines |> Map.get(line_no, "") |> String.starts_with?("#")
   end
 
-  defp comment_line?(source, line_no) do
-    source |> trimmed_line(line_no) |> String.starts_with?("#")
-  end
-
-  defp trimmed_line(source, line_no) do
-    (SourceFile.line_at(source, line_no) || "") |> String.trim()
-  end
-
-  defp blank_between?(source, from, to) do
-    to > from + 1 and Enum.any?((from + 1)..(to - 1), &(trimmed_line(source, &1) == ""))
+  defp blank_between?(lines, from, to) do
+    to > from + 1 and Enum.any?((from + 1)..(to - 1), &(Map.get(lines, &1, "") == ""))
   end
 
   defp start_line({_form, meta, _args}), do: meta[:line]
 
   defp end_line({_form, meta, _args}) do
-    meta
-    |> Keyword.get(:end_of_expression)
-    |> List.wrap()
-    |> Keyword.get(:line, meta[:line])
+    get_in(meta, [:end_of_expression, :line]) || meta[:line]
   end
 
   defp density_issue(ctx, {op, meta, _args}, message) do

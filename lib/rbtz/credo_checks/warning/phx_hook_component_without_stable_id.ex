@@ -89,6 +89,8 @@ defmodule Rbtz.CredoChecks.Warning.PhxHookComponentWithoutStableId do
       """
     ]
 
+  alias Rbtz.CredoChecks.HeexSource
+
   @doc false
   @impl Credo.Check
   def run(%SourceFile{} = source_file, params) do
@@ -253,24 +255,13 @@ defmodule Rbtz.CredoChecks.Warning.PhxHookComponentWithoutStableId do
       [{start, len}] ->
         from = start + len
         rest = binary_part(tag_body, from, byte_size(tag_body) - from)
-        take_balanced(rest, 1, [])
+        {:ok, content} = HeexSource.capture_interpolation(rest)
+        content
 
       nil ->
         nil
     end
   end
-
-  defp take_balanced(<<"}", _rest::binary>>, 1, acc),
-    do: acc |> Enum.reverse() |> IO.iodata_to_binary()
-
-  defp take_balanced(<<"{", rest::binary>>, d, acc),
-    do: take_balanced(rest, d + 1, ["{" | acc])
-
-  defp take_balanced(<<"}", rest::binary>>, d, acc),
-    do: take_balanced(rest, d - 1, ["}" | acc])
-
-  defp take_balanced(<<c, rest::binary>>, d, acc),
-    do: take_balanced(rest, d, [<<c>> | acc])
 
   defp assign_refs(content) do
     ~r/@([a-z_][a-zA-Z0-9_]*)/

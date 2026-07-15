@@ -78,7 +78,7 @@ defmodule Rbtz.CredoChecks.Readability.ClassAttrFormatting do
   end
 
   defp scan_template({heex, line_fn}, ctx, max_line_length) do
-    lines = String.split(heex, "\n")
+    lines = heex |> String.split("\n") |> List.to_tuple()
 
     heex
     |> find_class_attrs()
@@ -111,12 +111,12 @@ defmodule Rbtz.CredoChecks.Readability.ClassAttrFormatting do
   end
 
   defp find_too_long_line(lines, offset, content, max_line_length) do
-    newlines = content |> :binary.matches("\n") |> length()
+    newlines = HeexSource.count_newlines(content)
 
     offset..(offset + newlines)
     |> Enum.find_value(fn i ->
-      line = Enum.at(lines, i, "")
-      if String.length(line) > max_line_length, do: {i, line}, else: nil
+      line = elem(lines, i)
+      if String.length(line) > max_line_length, do: {i, line}
     end)
   end
 

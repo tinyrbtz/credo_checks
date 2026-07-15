@@ -109,37 +109,40 @@ defmodule Rbtz.CredoChecks.HeexSource do
   (with backslash escapes) do not affect the depth counter.
   """
   def capture_interpolation(input) when is_binary(input) do
-    capture_interp(input, <<>>, 1, nil)
+    case capture_interp(input, [], 1, nil) do
+      {:ok, acc} -> {:ok, acc |> Enum.reverse() |> IO.iodata_to_binary()}
+      :unterminated -> :unterminated
+    end
   end
 
   defp capture_interp(<<?\\, c, rest::binary>>, acc, depth, str) when str != nil do
-    capture_interp(rest, <<acc::binary, ?\\, c>>, depth, str)
+    capture_interp(rest, [c, ?\\ | acc], depth, str)
   end
 
   defp capture_interp(<<c, rest::binary>>, acc, depth, str) when str != nil and c == str do
-    capture_interp(rest, <<acc::binary, c>>, depth, nil)
+    capture_interp(rest, [c | acc], depth, nil)
   end
 
   defp capture_interp(<<c, rest::binary>>, acc, depth, str) when str != nil do
-    capture_interp(rest, <<acc::binary, c>>, depth, str)
+    capture_interp(rest, [c | acc], depth, str)
   end
 
   defp capture_interp(<<?", rest::binary>>, acc, depth, nil) do
-    capture_interp(rest, <<acc::binary, ?">>, depth, ?")
+    capture_interp(rest, [?" | acc], depth, ?")
   end
 
   defp capture_interp(<<?{, rest::binary>>, acc, depth, nil) do
-    capture_interp(rest, <<acc::binary, ?{>>, depth + 1, nil)
+    capture_interp(rest, [?{ | acc], depth + 1, nil)
   end
 
   defp capture_interp(<<?}, _rest::binary>>, acc, 1, nil), do: {:ok, acc}
 
   defp capture_interp(<<?}, rest::binary>>, acc, depth, nil) do
-    capture_interp(rest, <<acc::binary, ?}>>, depth - 1, nil)
+    capture_interp(rest, [?} | acc], depth - 1, nil)
   end
 
   defp capture_interp(<<c, rest::binary>>, acc, depth, nil) do
-    capture_interp(rest, <<acc::binary, c>>, depth, nil)
+    capture_interp(rest, [c | acc], depth, nil)
   end
 
   defp capture_interp(<<>>, _acc, _depth, _str), do: :unterminated
@@ -153,19 +156,22 @@ defmodule Rbtz.CredoChecks.HeexSource do
   backslash escapes verbatim.
   """
   def capture_string(input) when is_binary(input) do
-    capture_str(input, <<>>)
+    case capture_str(input, []) do
+      {:ok, acc} -> {:ok, acc |> Enum.reverse() |> IO.iodata_to_binary()}
+      :unterminated -> :unterminated
+    end
   end
 
   defp capture_str(<<>>, _acc), do: :unterminated
 
   defp capture_str(<<?\\, c, rest::binary>>, acc) do
-    capture_str(rest, <<acc::binary, ?\\, c>>)
+    capture_str(rest, [c, ?\\ | acc])
   end
 
   defp capture_str(<<?", _rest::binary>>, acc), do: {:ok, acc}
 
   defp capture_str(<<c, rest::binary>>, acc) do
-    capture_str(rest, <<acc::binary, c>>)
+    capture_str(rest, [c | acc])
   end
 
   @doc """
@@ -179,24 +185,26 @@ defmodule Rbtz.CredoChecks.HeexSource do
       when is_binary(heex) and is_binary(prefix) and is_function(capture_fn, 1) do
     heex
     |> :binary.matches(prefix)
-    |> Enum.flat_map(&capture_attr_match(heex, prefix, capture_fn, &1))
+    |> Enum.flat_map_reduce({0, 0}, &capture_attr_match(heex, prefix, capture_fn, &1, &2))
+    |> elem(0)
   end
 
-  defp capture_attr_match(heex, prefix, capture_fn, {start, _len}) do
+  defp capture_attr_match(heex, prefix, capture_fn, {start, _len}, {prev_start, prev_newlines}) do
+    offset =
+      prev_newlines + count_newlines(binary_part(heex, prev_start, start - prev_start))
+
+    acc = {start, offset}
+
     if attr_name_boundary?(heex, start) do
       open_pos = start + byte_size(prefix)
       rest = binary_part(heex, open_pos, byte_size(heex) - open_pos)
 
       case capture_fn.(rest) do
-        {:ok, content} ->
-          offset = heex |> binary_part(0, start) |> count_newlines()
-          [{offset, content}]
-
-        :unterminated ->
-          []
+        {:ok, content} -> {[{offset, content}], acc}
+        :unterminated -> {[], acc}
       end
     else
-      []
+      {[], acc}
     end
   end
 
@@ -212,63 +220,41 @@ defmodule Rbtz.CredoChecks.HeexSource do
   and outside string literals. Used by class-attribute formatting checks.
   """
   def top_level_comma?(binary) when is_binary(binary) do
-    top_level_comma?(
-      binary,
-      %{brace_depth: 0, bracket_depth: 0, paren_depth: 0, str: nil}
-    )
+    top_level_comma?(binary, 0, nil)
   end
 
-  defp top_level_comma?(<<>>, _s), do: false
+  defp top_level_comma?(<<>>, _depth, _str), do: false
 
-  defp top_level_comma?(<<?\\, _c, rest::binary>>, %{str: str} = s) when str != nil do
-    top_level_comma?(rest, s)
+  defp top_level_comma?(<<?\\, _c, rest::binary>>, depth, str) when str != nil do
+    top_level_comma?(rest, depth, str)
   end
 
-  defp top_level_comma?(<<c, rest::binary>>, %{str: str} = s) when str != nil and c == str do
-    top_level_comma?(rest, %{s | str: nil})
+  defp top_level_comma?(<<c, rest::binary>>, depth, str) when str != nil and c == str do
+    top_level_comma?(rest, depth, nil)
   end
 
-  defp top_level_comma?(<<_c, rest::binary>>, %{str: str} = s) when str != nil do
-    top_level_comma?(rest, s)
+  defp top_level_comma?(<<_c, rest::binary>>, depth, str) when str != nil do
+    top_level_comma?(rest, depth, str)
   end
 
-  defp top_level_comma?(<<?", rest::binary>>, s), do: top_level_comma?(rest, %{s | str: ?"})
+  defp top_level_comma?(<<?", rest::binary>>, depth, nil),
+    do: top_level_comma?(rest, depth, ?")
 
-  defp top_level_comma?(<<?', rest::binary>>, s), do: top_level_comma?(rest, %{s | str: ?'})
+  defp top_level_comma?(<<?', rest::binary>>, depth, nil),
+    do: top_level_comma?(rest, depth, ?')
 
-  defp top_level_comma?(<<?{, rest::binary>>, %{brace_depth: d} = s) do
-    top_level_comma?(rest, %{s | brace_depth: d + 1})
+  defp top_level_comma?(<<c, rest::binary>>, depth, nil) when c in [?{, ?[, ?(] do
+    top_level_comma?(rest, depth + 1, nil)
   end
 
-  defp top_level_comma?(<<?}, rest::binary>>, %{brace_depth: d} = s) do
-    top_level_comma?(rest, %{s | brace_depth: d - 1})
+  defp top_level_comma?(<<c, rest::binary>>, depth, nil) when c in [?}, ?], ?)] do
+    top_level_comma?(rest, depth - 1, nil)
   end
 
-  defp top_level_comma?(<<?[, rest::binary>>, %{bracket_depth: d} = s) do
-    top_level_comma?(rest, %{s | bracket_depth: d + 1})
-  end
+  defp top_level_comma?(<<?,, _rest::binary>>, 0, nil), do: true
 
-  defp top_level_comma?(<<?], rest::binary>>, %{bracket_depth: d} = s) do
-    top_level_comma?(rest, %{s | bracket_depth: d - 1})
-  end
-
-  defp top_level_comma?(<<?(, rest::binary>>, %{paren_depth: d} = s) do
-    top_level_comma?(rest, %{s | paren_depth: d + 1})
-  end
-
-  defp top_level_comma?(<<?), rest::binary>>, %{paren_depth: d} = s) do
-    top_level_comma?(rest, %{s | paren_depth: d - 1})
-  end
-
-  defp top_level_comma?(<<?,, _rest::binary>>, %{
-         brace_depth: 0,
-         bracket_depth: 0,
-         paren_depth: 0,
-         str: nil
-       }),
-       do: true
-
-  defp top_level_comma?(<<_c, rest::binary>>, s), do: top_level_comma?(rest, s)
+  defp top_level_comma?(<<_c, rest::binary>>, depth, str),
+    do: top_level_comma?(rest, depth, str)
 
   @doc """
   Walks a HEEx template line-by-line and returns one record per fully-opened

@@ -9,11 +9,13 @@ defmodule Rbtz.CredoChecks.TestSource do
   @doc """
   Returns `true` when `filename` looks like a test file.
   """
-
   def test_file?(filename) when is_binary(filename) do
-    segments = filename |> Path.expand() |> Path.split()
-    String.ends_with?(filename, "_test.exs") or "test" in segments
+    String.ends_with?(filename, "_test.exs") or has_test_segment?(filename)
   end
 
   def test_file?(_), do: false
+
+  defp has_test_segment?(filename) do
+    filename |> Path.expand() |> Path.split() |> Enum.member?("test")
+  end
 end
