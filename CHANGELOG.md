@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## Unreleased
+## 0.9.0
 
 - **New check** `Rbtz.CredoChecks.Readability.FunctionSpacing` — requires
   consistent blank-line spacing around function definitions. Header blocks

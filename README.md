@@ -28,6 +28,7 @@ them is `Rbtz.CredoChecks.all/0` — see [Installation and configuration](#insta
 - `Rbtz.CredoChecks.Readability.AtomHttpStatusCodes`: Forbids passing integer HTTP status codes to `Plug.Conn` / Phoenix controllers and `Phoenix.ConnTest` assertion helpers (`json_response`, `html_response`, `response`, `redirected_to`) — use atoms like `:not_found`.
 - `Rbtz.CredoChecks.Readability.AwkwardPipe`: Flags pipe usages that hurt readability without giving chaining benefit — pipe on either side of `&&` / `||` / `++` / `<>` / `in` / `and` / `or`, pipes into any `Kernel.` operator form (e.g. `Kernel.&&` / `Kernel.||` / `Kernel.+` / `Kernel.-` / `Kernel.==` / `Kernel.<` / `Kernel.in`), single-step pipes in tuple literals / string interpolation / non-first arg positions / single-line lambdas, any pipe joined in an `if` / `unless` / `cond` condition, single-step pipes on the RHS of `<-` inside HEEx `:for=` / `for` comprehensions, and single-step pipes wrapped in parens just to dot-access their result.
 - `Rbtz.CredoChecks.Readability.ClassAttrFormatting`: Enforces HEEx `class={...}` attributes use list syntax for multiple values, and flags any class-attribute line — single-line or inside a multi-line list — that exceeds `:max_line_length` (default 98).
+- `Rbtz.CredoChecks.Readability.FunctionSpacing`: Requires consistent blank-line spacing around function definitions — blank line above header blocks (`@doc` / `@impl` / `@spec` / …), no blank between header and first clause, multi-clause functions compact when all single-line and separated when any clause is multi-line.
 - `Rbtz.CredoChecks.Readability.LiveViewCallbackOrder`: Enforces the canonical callback order in `Phoenix.LiveView` modules: `mount` → `handle_params` → `handle_event` → `handle_info` → `handle_async` → helpers → `render`.
 - `Rbtz.CredoChecks.Readability.ModuleAttrCollectionFormatting`: Flags multi-line collections assigned to module attributes — word sigils (`~w[...]` / `~W[...]`), lists, maps/structs, and tuples — that pack more than one item onto a line. Put one item per line so the collection is easy to scan, diff, and update. Single-line collections are unaffected, however many items they hold.
 - `Rbtz.CredoChecks.Readability.PreferBlockFormForMultilineIf`: Forbids the keyword form `if cond, do: x, else: y` (and the `unless` equivalent) when the expression spans more than one line — switch to the `do ... else ... end` block form. Single-line keyword form is fine.
@@ -160,6 +161,7 @@ enabled:
     {Rbtz.CredoChecks.Readability.AtomHttpStatusCodes, []},
     {Rbtz.CredoChecks.Readability.AwkwardPipe, []},
     {Rbtz.CredoChecks.Readability.ClassAttrFormatting, []},
+    {Rbtz.CredoChecks.Readability.FunctionSpacing, []},
     {Rbtz.CredoChecks.Readability.LiveViewCallbackOrder, []},
     {Rbtz.CredoChecks.Readability.ModuleAttrCollectionFormatting, []},
     {Rbtz.CredoChecks.Readability.PreferBlockFormForMultilineIf, []},
