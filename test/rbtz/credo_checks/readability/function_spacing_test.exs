@@ -136,7 +136,31 @@ defmodule Rbtz.CredoChecks.Readability.FunctionSpacingTest do
     end
   end
 
-  describe "multi-clause density" do
+  describe "header flush and multi-clause density" do
+    test "flags a blank line between the header and the first clause" do
+      """
+      defmodule M do
+        @spec one() :: :ok
+
+        def one, do: :ok
+
+        @spec two(atom()) :: atom()
+
+        def two(x) when is_atom(x), do: x
+
+        def two(x) when is_integer(x) do
+          x
+        end
+      end
+      """
+      |> to_source_file()
+      |> run_check(FunctionSpacing)
+      |> assert_issues(fn issues ->
+        assert length(issues) == 2
+        assert Enum.all?(issues, &(&1.message =~ "no blank line between the function header"))
+      end)
+    end
+
     test "flags single-line groups that are not fully compact" do
       """
       defmodule M do
@@ -144,11 +168,6 @@ defmodule Rbtz.CredoChecks.Readability.FunctionSpacingTest do
         def one(x) when is_atom(x), do: x
 
         def one(x) when is_integer(x), do: x
-
-        @spec two(atom()) :: atom()
-
-        def two(x) when is_atom(x), do: x
-        def two(x) when is_integer(x), do: x
 
         def three(x) when is_atom(x), do: x
 
@@ -168,10 +187,10 @@ defmodule Rbtz.CredoChecks.Readability.FunctionSpacingTest do
       |> to_source_file()
       |> run_check(FunctionSpacing)
       |> assert_issues(fn issues ->
-        assert length(issues) == 5
+        assert length(issues) == 4
         assert Enum.all?(issues, &(&1.message =~ "all single-line"))
         triggers = issues |> Enum.map(& &1.trigger) |> Enum.sort()
-        assert triggers == ["def", "def", "def", "defmacro", "defp"]
+        assert triggers == ["def", "def", "defmacro", "defp"]
       end)
     end
 
@@ -179,16 +198,8 @@ defmodule Rbtz.CredoChecks.Readability.FunctionSpacingTest do
       """
       defmodule M do
         @spec one(atom()) :: atom()
-
         def one(x) when is_atom(x), do: x
         def one(x) when is_integer(x) do
-          x
-        end
-
-        @spec two(atom()) :: atom()
-        def two(x) when is_atom(x), do: x
-
-        def two(x) when is_integer(x) do
           x
         end
 
@@ -201,34 +212,9 @@ defmodule Rbtz.CredoChecks.Readability.FunctionSpacingTest do
       |> to_source_file()
       |> run_check(FunctionSpacing)
       |> assert_issues(fn issues ->
-        assert length(issues) == 3
-        assert Enum.all?(issues, &(&1.message =~ "multi-line clause"))
-
-        by_line = Map.new(issues, &{&1.line_no, &1.message})
-        assert by_line[4] =~ "between every pair of clauses"
-        assert by_line[10] =~ "between the function header and the first clause"
-        assert by_line[16] =~ "between every pair of clauses"
-      end)
-    end
-
-    test "flags both header and clause gaps when both are wrong" do
-      """
-      defmodule M do
-        @spec one(atom()) :: atom()
-        def one(x) when is_atom(x), do: x
-        def one(x) when is_integer(x) do
-          x
-        end
-      end
-      """
-      |> to_source_file()
-      |> run_check(FunctionSpacing)
-      |> assert_issues(fn issues ->
         assert length(issues) == 2
-        messages = Enum.map(issues, & &1.message)
-        assert Enum.any?(messages, &(&1 =~ "between every pair of clauses"))
-        assert Enum.any?(messages, &(&1 =~ "between the function header and the first clause"))
-        assert Enum.all?(issues, &(&1.line_no == 3))
+        assert Enum.all?(issues, &(&1.message =~ "multi-line clause"))
+        assert Enum.all?(issues, &(&1.message =~ "between every pair of clauses"))
       end)
     end
 
@@ -259,7 +245,6 @@ defmodule Rbtz.CredoChecks.Readability.FunctionSpacingTest do
         def foo(x) when is_integer(x), do: x
 
         @spec bar(atom()) :: atom()
-
         def bar(x) when is_atom(x), do: x
 
         def bar(x) when is_integer(x) do
@@ -276,7 +261,6 @@ defmodule Rbtz.CredoChecks.Readability.FunctionSpacingTest do
         end
 
         @spec one() :: :ok
-
         def one, do: :ok
 
         @spec three(atom()) :: atom()

@@ -22,17 +22,19 @@ defmodule Rbtz.CredoChecks.Readability.FunctionSpacing do
       No blank line is required when the line above the block is the
       `defmodule` (or `defprotocol` / `defimpl`) that opens the body.
 
+      A header block is always flush against the first clause of the function
+      it documents — never a blank line between `@spec` / `@impl` / … and
+      `def`.
+
       ## Multi-clause density (name + arity)
 
       Clauses of the same function (`def` / `defp` / `defmacro` /
       `defmacrop` with the same name and arity) share one layout, with or
       without a header:
 
-        * **All single-line** — no blank lines between clauses, and (when a
-          header is present) no blank line under the header.
+        * **All single-line** — no blank lines between clauses.
         * **Any multi-line** — a blank line between every pair of consecutive
-          clauses, and (when a header is present) a blank line under the
-          header.
+          clauses.
 
       # Bad — missing blank above header
 
@@ -40,6 +42,12 @@ defmodule Rbtz.CredoChecks.Readability.FunctionSpacing do
           def one, do: :ok
           @spec two() :: :ok
           def two, do: :ok
+
+      # Bad — blank under header
+
+          @spec one() :: :ok
+
+          def one, do: :ok
 
       # Bad — single-line clauses must stay compact
 
@@ -63,14 +71,13 @@ defmodule Rbtz.CredoChecks.Readability.FunctionSpacing do
             @spec two() :: :ok
             def two, do: :ok
 
-            # all single-line → compact
+            # all single-line → compact clauses, flush header
             @spec three(atom()) :: atom()
             def three(x) when is_atom(x), do: x
             def three(x) when is_integer(x), do: x
 
-            # any multi-line → separated
+            # any multi-line → separated clauses, still flush header
             @spec four(atom()) :: atom()
-
             def four(x) when is_atom(x), do: x
 
             def four(x) when is_integer(x) do
@@ -170,12 +177,36 @@ defmodule Rbtz.CredoChecks.Readability.FunctionSpacing do
 
   defp maybe_density(ctx, header, stmts) do
     case clauses_for(stmts) do
-      [_, _ | _] = clauses -> check_density(ctx, header, clauses)
-      _ -> ctx
+      [] ->
+        ctx
+
+      [first | _] = clauses ->
+        ctx
+        |> check_header_flush(header, first)
+        |> check_clause_gaps(clauses)
     end
   end
 
-  defp check_density(ctx, header, [first | _] = clauses) do
+  defp check_header_flush(ctx, nil, _first), do: ctx
+
+  defp check_header_flush(ctx, header, first) do
+    source = ctx.source_file
+    header_end = expand_comments_down(source, end_line(header), start_line(first))
+
+    if blank_between?(source, header_end, start_line(first)) do
+      density_issue(
+        ctx,
+        first,
+        "There should be no blank line between the function header and the first clause."
+      )
+    else
+      ctx
+    end
+  end
+
+  defp check_clause_gaps(ctx, [_single]), do: ctx
+
+  defp check_clause_gaps(ctx, [first | _] = clauses) do
     source = ctx.source_file
     want_blank? = Enum.any?(clauses, &multi_line?/1)
 
@@ -186,27 +217,10 @@ defmodule Rbtz.CredoChecks.Readability.FunctionSpacing do
         blank_between?(source, end_line(a), start_line(b)) != want_blank?
       end)
 
-    ctx =
-      if gap_mismatch? do
-        density_issue(ctx, first, clause_gap_message(want_blank?))
-      else
-        ctx
-      end
-
-    check_header_gap(ctx, header, first, want_blank?)
-  end
-
-  defp check_header_gap(ctx, nil, _first, _want_blank?), do: ctx
-
-  defp check_header_gap(ctx, header, first, want_blank?) do
-    source = ctx.source_file
-    header_end = expand_comments_down(source, end_line(header), start_line(first))
-    has_blank? = blank_between?(source, header_end, start_line(first))
-
-    if has_blank? == want_blank? do
-      ctx
+    if gap_mismatch? do
+      density_issue(ctx, first, clause_gap_message(want_blank?))
     else
-      density_issue(ctx, first, header_gap_message(want_blank?))
+      ctx
     end
   end
 
@@ -216,14 +230,6 @@ defmodule Rbtz.CredoChecks.Readability.FunctionSpacing do
 
   defp clause_gap_message(false) do
     "Multi-clause function clauses are all single-line; remove blank lines between clauses."
-  end
-
-  defp header_gap_message(true) do
-    "Multi-clause function has a multi-line clause; add a blank line between the function header and the first clause."
-  end
-
-  defp header_gap_message(false) do
-    "Multi-clause function clauses are all single-line; remove the blank line between the function header and the first clause."
   end
 
   defp multi_line?(ast), do: end_line(ast) > start_line(ast)
