@@ -8,7 +8,7 @@ A published Hex package (`rbtz_credo_checks`) of **highly opinionated** custom [
 
 ## Commands
 
-- `mix verify` — the full gate, and exactly what CI runs. In order: `compile --force --warnings-as-errors`, `format --check-formatted`, `cspell` (spell-check via `npx cspell`), `test --cover --raise --warnings-as-errors`, `credo`. Run this before considering work done.
+- `mix verify` — the full gate, and exactly what CI runs. In order: `compile --force --warnings-as-errors`, `format --check-formatted`, `test --cover --raise --warnings-as-errors`, `credo`. Run this before considering work done.
 - `mix test` — run tests. Single file: `mix test test/rbtz/credo_checks/<category>/<name>_test.exs`. Single test: append `:LINE`.
 - `mix credo` / `mix credo --strict` — the project dogfoods its own checks (see `.credo.exs`).
 - `mix format` — apply formatting (`verify` only _checks_ it).

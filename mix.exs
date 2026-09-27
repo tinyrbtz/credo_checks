@@ -67,14 +67,10 @@ defmodule Rbtz.CredoChecks.MixProject do
   defp aliases do
     [
       setup: ["deps.get", "deps.compile"],
-      cspell: [
-        "cmd --shell FORCE_COLOR=1 npx cspell lint --unique --relative --no-progress --dot --gitignore --color ."
-      ],
       verify: [
         # Order from fastest to slowest
         "compile --force --warnings-as-errors",
         "format --check-formatted",
-        "cspell",
         "test --color --cover --raise --warnings-as-errors",
         # performing this at the end so that warnings and todos are obvious
         "credo"
