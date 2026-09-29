@@ -43,6 +43,11 @@ All notable changes to this project will be documented in this file.
   `~p` for in-app paths in navigation calls, HEEx `navigate=` / `patch=`
   attributes, and test requests / redirect assertions; `ignore_tags:` exempts
   tagged tests (e.g. requests to a different host).
+- **New check**
+  `Rbtz.CredoChecks.Readability.PreferModuleAttributeForPageMetadata` —
+  requires static `page_title` / `page_description` (configurable via `:keys`)
+  to be declared as module attributes, flagging string literals passed to
+  `assign` / `render`.
 
 ## 0.9.0
 
