@@ -24,6 +24,9 @@ All notable changes to this project will be documented in this file.
   module per file under `lib/`, flagging nested and sibling modules. Exception
   modules and struct-only modules may stay with their owner; modules generated
   inside `quote` are ignored.
+- **New check** `Rbtz.CredoChecks.Warning.ApplicationPutEnvInTests` — forbids
+  `Application.put_env` / `Application.put_all_env` in test files (application
+  env is global, so the test can't run async); `test_helper.exs` is exempt.
 
 ## 0.9.0
 

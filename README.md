@@ -58,6 +58,7 @@ them is `Rbtz.CredoChecks.all/0` — see [Installation and configuration](#insta
 
 ### Warning
 
+- `Rbtz.CredoChecks.Warning.ApplicationPutEnvInTests`: Forbids `Application.put_env` / `Application.put_all_env` in test files — application env is global, so it forces `async: false` and an `on_exit` restore; stub a function that reads the value instead. `test_helper.exs` is exempt.
 - `Rbtz.CredoChecks.Warning.AssertNonEmptyBeforeIterate`: Requires tests that iterate a collection with `assert`/`refute` inside to first assert the collection is non-empty.
 - `Rbtz.CredoChecks.Warning.BooleanDataAttrCoalescesNil`: Requires boolean `data-*` attributes in HEEx to coalesce with `nil` (e.g. `data-disabled={@disabled || nil}`) so the attribute is omitted when falsy.
 - `Rbtz.CredoChecks.Warning.DisableMigrationLock`: Forbids `@disable_migration_lock true` in Ecto migration files.
@@ -189,6 +190,7 @@ enabled:
     {Rbtz.CredoChecks.Refactor.PreferWithOverCase, []},
     {Rbtz.CredoChecks.Refactor.RawHtmlMatchInLiveViewTests, []},
     {Rbtz.CredoChecks.Refactor.RedundantThen, []},
+    {Rbtz.CredoChecks.Warning.ApplicationPutEnvInTests, []},
     {Rbtz.CredoChecks.Warning.AssertNonEmptyBeforeIterate, []},
     {Rbtz.CredoChecks.Warning.BooleanDataAttrCoalescesNil, []},
     {Rbtz.CredoChecks.Warning.DisableMigrationLock, []},
