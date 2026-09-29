@@ -48,6 +48,11 @@ All notable changes to this project will be documented in this file.
   requires static `page_title` / `page_description` (configurable via `:keys`)
   to be declared as module attributes, flagging string literals passed to
   `assign` / `render`.
+- **New check** `Rbtz.CredoChecks.Readability.PreferSelectorModuleAttributes`
+  — requires test selectors to be declared as module attributes, flagging
+  string-literal selectors passed to selector-taking functions (`:functions`)
+  and selector builders like `by_test_id` (`:selector_builders`) in test
+  files; bare tag names are allowed.
 
 ## 0.9.0
 

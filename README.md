@@ -40,6 +40,7 @@ them is `Rbtz.CredoChecks.all/0` — see [Installation and configuration](#insta
 - `Rbtz.CredoChecks.Readability.PreferDateTimeShift`: Prefers `DateTime.shift/2` (and the `NaiveDateTime` / `Date` / `Time` equivalents) for calendar arithmetic — flags `add` with a `:minute` / `:hour` / `:day` / `:week` unit, a second offset built from 60 / 3600 / 86400 / 604800 or a literal multiple of 60, and every `Date.add/2`. `add/3` stays for genuine second / millisecond offsets.
 - `Rbtz.CredoChecks.Readability.PreferModuleAttributeForPageMetadata`: Requires static page metadata to come from module attributes — flags a string literal for `page_title` / `page_description` (configurable via `:keys`) passed to `assign` or `render` as a keyword, map entry, or `assign(socket, :key, "...")`. Interpolated and computed values are left alone.
 - `Rbtz.CredoChecks.Readability.PreferNilEquality`: Prefers `x == nil` / `x != nil` over `is_nil(x)` / `not is_nil(x)` in `if` / `unless` / `cond` / `case` conditions and in `assert` / `refute` arguments. `is_nil/1` in `when` guards and Ecto query DSL is unaffected.
+- `Rbtz.CredoChecks.Readability.PreferSelectorModuleAttributes`: Requires test selectors to be declared as module attributes — flags string-literal selectors passed to selector-taking functions (`element`, `has_element?`, `form`, `LazyHTML.query` / `filter`, `Floki.find`, and DOM helpers; configurable via `:functions`) and literal arguments to selector builders like `by_test_id` (`:selector_builders`) in test files. Bare tag names (`"h1"`) are allowed.
 - `Rbtz.CredoChecks.Readability.PreferSigilSForEscapedQuotes`: Encourages the `~s` sigil for strings that would otherwise need `\"` escapes.
 - `Rbtz.CredoChecks.Readability.PreferToTimeout`: Encourages `to_timeout(minute: 15)` (Elixir 1.17+) over Erlang's `:timer.seconds/1`, `:timer.minutes/1`, `:timer.hours/1`, and `:timer.hms/3`.
 - `Rbtz.CredoChecks.Readability.PreferVerifiedRoutes`: Requires `~p` for in-app paths — flags raw `"/path"` strings in `push_navigate` / `push_patch` / `redirect` `to:`, HEEx `navigate=` / `patch=` attributes, and (in tests) `live`, the `Phoenix.ConnTest` request helpers, and `assert_redirect` / `assert_patch`. Skips `router.ex`; `ignore_tags:` exempts tests tagged for paths `~p` can't express.
@@ -183,6 +184,7 @@ enabled:
     {Rbtz.CredoChecks.Readability.PreferDateTimeShift, []},
     {Rbtz.CredoChecks.Readability.PreferModuleAttributeForPageMetadata, []},
     {Rbtz.CredoChecks.Readability.PreferNilEquality, []},
+    {Rbtz.CredoChecks.Readability.PreferSelectorModuleAttributes, []},
     {Rbtz.CredoChecks.Readability.PreferSigilSForEscapedQuotes, []},
     {Rbtz.CredoChecks.Readability.PreferToTimeout, []},
     {Rbtz.CredoChecks.Readability.PreferVerifiedRoutes, []},
