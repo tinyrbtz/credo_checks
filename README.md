@@ -39,6 +39,7 @@ them is `Rbtz.CredoChecks.all/0` — see [Installation and configuration](#insta
 - `Rbtz.CredoChecks.Readability.PreferSigilSForEscapedQuotes`: Encourages the `~s` sigil for strings that would otherwise need `\"` escapes.
 - `Rbtz.CredoChecks.Readability.PreferToTimeout`: Encourages `to_timeout(minute: 15)` (Elixir 1.17+) over Erlang's `:timer.seconds/1`, `:timer.minutes/1`, `:timer.hours/1`, and `:timer.hms/3`.
 - `Rbtz.CredoChecks.Readability.RedundantClassAttrWrapping`: Flags HEEx `class={...}` attributes whose wrapping is unnecessary — `class={"foo"}` / `class={["foo"]}` should be `class="foo"`; `class={[expr]}` should be `class={expr}`.
+- `Rbtz.CredoChecks.Readability.ReqTestCallStyle`: Enforces the call style Req's docs use for `Req.Test.expect` / `Req.Test.stub` — the name is the first argument, not piped in (`Req.Test.stub/2` returns `:ok`, so piped chains break).
 - `Rbtz.CredoChecks.Readability.ShorthandDefMustBeCompact`: Forbids the shorthand `def name(args), do: body` form whose body spans more than one line — switch to a `do...end` block when the body has to wrap. Multi-line heads (e.g. nested pattern matches) are fine as long as the body stays on a single line.
 - `Rbtz.CredoChecks.Readability.SnakeCaseVariableNumbering`: Encourages numbered variables to use a separating underscore: `user_1`, `user_2` (not `user1`, `user2`). Configurable via `:exclude`.
 - `Rbtz.CredoChecks.Readability.TopLevelAliasImportRequire`: Ensures `alias`, `import`, and `require` statements appear only at the top level of a module.
@@ -173,6 +174,7 @@ enabled:
     {Rbtz.CredoChecks.Readability.PreferSigilSForEscapedQuotes, []},
     {Rbtz.CredoChecks.Readability.PreferToTimeout, []},
     {Rbtz.CredoChecks.Readability.RedundantClassAttrWrapping, []},
+    {Rbtz.CredoChecks.Readability.ReqTestCallStyle, []},
     {Rbtz.CredoChecks.Readability.ShorthandDefMustBeCompact, []},
     {Rbtz.CredoChecks.Readability.SnakeCaseVariableNumbering, []},
     {Rbtz.CredoChecks.Readability.TopLevelAliasImportRequire, []},

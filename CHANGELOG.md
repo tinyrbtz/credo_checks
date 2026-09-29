@@ -11,6 +11,10 @@ All notable changes to this project will be documented in this file.
   `reject(&Module.fun/arity)`), including `Mimic.`-qualified calls.
   `stub(Module)` is left alone. Only runs when the project depends on
   `:mimic`; set `detect_dependency: false` to always run.
+- **New check** `Rbtz.CredoChecks.Readability.ReqTestCallStyle` — enforces the
+  call style Req's docs use in test files: flags `Name |> Req.Test.expect(...)`
+  / `Name |> Req.Test.stub(...)` in favour of passing the name as the first
+  argument.
 
 ## 0.9.0
 
