@@ -20,7 +20,8 @@ defmodule Rbtz.CredoChecks.Readability.PreferVerifiedRoutes do
         * `<.link navigate="/...">` and `<.link patch="/...">` in HEEx
         * in test files: `live(conn, "/...")`, the `Phoenix.ConnTest`
           request helpers (`get`, `post`, `put`, `patch`, `delete`, `head`,
-          `options`), and `assert_redirect` / `assert_patch`
+          `options`), `assert_redirect` / `assert_patch`, and comparisons
+          with `redirected_to(conn)`
 
       `router.ex` files are skipped (the `Redirect` plug and route
       definitions take raw paths). Tests that deliberately request a path
@@ -127,7 +128,19 @@ defmodule Rbtz.CredoChecks.Readability.PreferVerifiedRoutes do
        when name in @test_path_calls or name in @test_assert_calls,
        do: maybe_put_issue(ctx, path, meta[:line])
 
+  defp check_call({:==, meta, [lhs, rhs]}, true, ctx) do
+    cond do
+      redirected_to?(lhs) -> maybe_put_issue(ctx, rhs, meta[:line])
+      redirected_to?(rhs) -> maybe_put_issue(ctx, lhs, meta[:line])
+      true -> ctx
+    end
+  end
+
   defp check_call(_ast, _test_file?, ctx), do: ctx
+
+  defp redirected_to?({:|>, _, [_, call]}), do: redirected_to?(call)
+  defp redirected_to?({:redirected_to, _, args}), do: is_list(args)
+  defp redirected_to?(_ast), do: false
 
   defp scan_template({heex, line_fn}, ctx) do
     heex
@@ -150,7 +163,8 @@ defmodule Rbtz.CredoChecks.Readability.PreferVerifiedRoutes do
     issue =
       format_issue(ctx,
         message:
-          ~s(Use `~p"#{path}"` for in-app paths — it's verified against the router at compile time.),
+          "Use `~p#{inspect(path)}` for in-app paths — it's verified against the router at " <>
+            "compile time.",
         trigger: path,
         line_no: line_no
       )

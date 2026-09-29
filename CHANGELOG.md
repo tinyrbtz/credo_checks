@@ -18,8 +18,8 @@ All notable changes to this project will be documented in this file.
 - **New check** `Rbtz.CredoChecks.Readability.PreferDateTimeShift` — prefers
   `DateTime.shift/2` (and the `NaiveDateTime` / `Date` / `Time` equivalents)
   over `add` for calendar arithmetic: flags a `:minute` / `:hour` / `:day` /
-  `:week` unit, second offsets built from 60 / 3600 / 86400 / 604800 or a
-  literal multiple of 60, and every `Date.add/2`.
+  `:week` unit, second offsets whose integer literals multiply to whole
+  minutes, and every `Date.add/2`, naming the equivalent `shift` option.
 - **New check** `Rbtz.CredoChecks.Design.OneModulePerFile` — requires one
   module per file under `lib/`, flagging nested and sibling modules. Exception
   modules and struct-only modules may stay with their owner; modules generated
@@ -41,7 +41,8 @@ All notable changes to this project will be documented in this file.
   rows is otherwise silent.
 - **New check** `Rbtz.CredoChecks.Readability.PreferVerifiedRoutes` — requires
   `~p` for in-app paths in navigation calls, HEEx `navigate=` / `patch=`
-  attributes, and test requests / redirect assertions; `ignore_tags:` exempts
+  attributes, and test requests / redirect assertions (including
+  `redirected_to(conn) == "/..."`); `ignore_tags:` exempts
   tagged tests (e.g. requests to a different host).
 - **New check**
   `Rbtz.CredoChecks.Readability.PreferModuleAttributeForPageMetadata` —

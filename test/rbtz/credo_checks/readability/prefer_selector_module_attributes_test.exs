@@ -26,13 +26,36 @@ defmodule Rbtz.CredoChecks.Readability.PreferSelectorModuleAttributesTest do
         assert has_element?(view, ".flash-notice", "Saved")
         assert html |> LazyHTML.from_fragment() |> LazyHTML.query("[data-role=title]")
         assert get_text(html, by_test_id("title")) == "Settings"
+        view |> with_target("#avatar") |> render_click("remove")
+        file_input(view, "#avatar-form", :avatar, [])
+        assert html |> Floki.parse_fragment!() |> Floki.filter_out(".hidden")
       end
     end
     """
     |> run_test_file()
     |> assert_issues(fn issues ->
       assert issues |> Enum.map(& &1.trigger) |> Enum.sort() ==
-               ["#save", ".flash-notice", "[data-role=title]", "title"]
+               [
+                 "#avatar",
+                 "#avatar-form",
+                 "#save",
+                 ".flash-notice",
+                 ".hidden",
+                 "[data-role=title]",
+                 "title"
+               ]
+    end)
+  end
+
+  test "names the selector and the function in the message" do
+    """
+    has_element?(view, "#save")
+    """
+    |> run_test_file()
+    |> assert_issue(fn issue ->
+      assert issue.message ==
+               ~s|Move the selector "#save" passed to `has_element?` into a named module | <>
+                 "attribute at the top of the test file."
     end)
   end
 

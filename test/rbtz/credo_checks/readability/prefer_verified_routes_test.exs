@@ -67,13 +67,29 @@ defmodule Rbtz.CredoChecks.Readability.PreferVerifiedRoutesTest do
         conn |> post("/users", user: %{})
         assert_patch(view, "/users?page=2")
         assert_redirect(view, "/login")
+        assert redirected_to(conn) == "/home"
+        assert conn |> redirected_to(302) == "/welcome"
+        assert "/signup" == redirected_to(conn)
+        assert redirected_to(conn) == path
       end
     end
     """
     |> to_source_file("test/my_app_web/users_test.exs")
     |> run_check(PreferVerifiedRoutes)
     |> assert_issues(fn issues ->
-      assert triggers(issues) == ["/login", "/users", "/users", "/users?page=2"]
+      assert triggers(issues) ==
+               ["/home", "/login", "/signup", "/users", "/users", "/users?page=2", "/welcome"]
+    end)
+  end
+
+  test "escapes the path in the suggested `~p`" do
+    ~S"""
+    get(conn, "/articles/the-story\n")
+    """
+    |> to_source_file("test/my_app_web/articles_test.exs")
+    |> run_check(PreferVerifiedRoutes)
+    |> assert_issue(fn issue ->
+      assert issue.message =~ ~S|Use `~p"/articles/the-story\n"`|
     end)
   end
 
@@ -113,6 +129,7 @@ defmodule Rbtz.CredoChecks.Readability.PreferVerifiedRoutesTest do
       test "lists users", %{conn: conn} do
         {:ok, _view, _html} = live(conn, ~p"/users")
         conn |> get(path)
+        assert user.home_path == "/home"
       end
     end
     """

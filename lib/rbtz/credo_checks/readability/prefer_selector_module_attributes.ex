@@ -8,9 +8,12 @@ defmodule Rbtz.CredoChecks.Readability.PreferSelectorModuleAttributes do
         element: 1,
         has_element?: 1,
         form: 1,
+        with_target: 1,
+        file_input: 1,
         "LazyHTML.query": 1,
         "LazyHTML.filter": 1,
         "Floki.find": 1,
+        "Floki.filter_out": 1,
         get_text: 1,
         get_attribute: 1,
         element_present?: 1,
@@ -122,8 +125,8 @@ defmodule Rbtz.CredoChecks.Readability.PreferSelectorModuleAttributes do
   defp issue_for(ctx, name, selector, meta) do
     format_issue(ctx,
       message:
-        "Declare the selector passed to `#{name}` as a module attribute at the top of the " <>
-          "test file (e.g. `@save_button #{inspect(selector)}`) instead of inlining it.",
+        "Move the selector #{inspect(selector)} passed to `#{name}` into a named module " <>
+          "attribute at the top of the test file.",
       trigger: selector,
       line_no: meta[:line]
     )
