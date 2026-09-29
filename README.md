@@ -19,6 +19,7 @@ them is `Rbtz.CredoChecks.all/0` — see [Installation and configuration](#insta
 - `Rbtz.CredoChecks.Design.BareScriptInHeex`: Forbids raw `<script>` tags in HEEx templates — use a `phx-hook`, the root layout, or import through the asset bundler.
 - `Rbtz.CredoChecks.Design.CnInClassList`: Enforces correct use of the `cn(...)` class-merging helper in HEEx `class={...}` attributes — flags `cn([...])` with no `@assign` (wasted), bare lists mixing literal classes with any caller-provided assign (unwrapped, so TwMerge can't dedupe), and `cn(...)` calls where assigns aren't listed last (TwMerge keeps the last value, so assigns before literals lose their override). Configurable via `:helper_name` (default `"cn"`).
 - `Rbtz.CredoChecks.Design.CustomAliasInRouterScope`: Forbids manual `alias` statements inside Phoenix `scope` blocks.
+- `Rbtz.CredoChecks.Design.OneModulePerFile`: Requires one module per file under `lib/` — flags nested and sibling modules. Exception modules (`defexception`) and struct-only modules (`defstruct` plus attributes) may stay with their owner; modules generated inside `quote` are ignored.
 - `Rbtz.CredoChecks.Design.PreferLogsterInLib`: Forbids the standard `Logger` module in application code under `lib/` — use [Logster](https://hex.pm/packages/logster) instead.
 - `Rbtz.CredoChecks.Design.RawHtmlElementsInHeex`: Forbids raw `<button>`, `<input>`, `<select>`, `<textarea>`, and `<a>` in HEEx — use the app's components instead.
 - `Rbtz.CredoChecks.Design.RawSvgInHeex`: Forbids raw `<svg>` tags in HEEx templates.
@@ -158,6 +159,7 @@ enabled:
     {Rbtz.CredoChecks.Design.BareScriptInHeex, []},
     {Rbtz.CredoChecks.Design.CnInClassList, []},
     {Rbtz.CredoChecks.Design.CustomAliasInRouterScope, []},
+    {Rbtz.CredoChecks.Design.OneModulePerFile, []},
     {Rbtz.CredoChecks.Design.PreferLogsterInLib, []},
     {Rbtz.CredoChecks.Design.RawHtmlElementsInHeex, []},
     {Rbtz.CredoChecks.Design.RawSvgInHeex, []},

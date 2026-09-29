@@ -20,6 +20,10 @@ All notable changes to this project will be documented in this file.
   over `add` for calendar arithmetic: flags a `:minute` / `:hour` / `:day` /
   `:week` unit, second offsets built from 60 / 3600 / 86400 / 604800 or a
   literal multiple of 60, and every `Date.add/2`.
+- **New check** `Rbtz.CredoChecks.Design.OneModulePerFile` — requires one
+  module per file under `lib/`, flagging nested and sibling modules. Exception
+  modules and struct-only modules may stay with their owner; modules generated
+  inside `quote` are ignored.
 
 ## 0.9.0
 
