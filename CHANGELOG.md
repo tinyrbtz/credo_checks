@@ -30,6 +30,11 @@ All notable changes to this project will be documented in this file.
 - **New check** `Rbtz.CredoChecks.Readability.NoModuledocFalse` — forbids
   `@moduledoc false`: write a `@moduledoc` or leave the attribute out (pair
   with Credo's `Readability.ModuleDoc` check disabled).
+- **New check** `Rbtz.CredoChecks.Warning.ObanUniqueOptions` — requires an
+  Oban worker with a literal `unique:` (or `unique: true`) to state `period:`
+  (Oban's default dedupes for only 60 seconds), and to pair `period: :infinity`
+  with `states: :incomplete` (the default states block re-enqueueing once a job
+  completes).
 
 ## 0.9.0
 

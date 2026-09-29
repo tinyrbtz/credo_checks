@@ -65,6 +65,7 @@ them is `Rbtz.CredoChecks.all/0` — see [Installation and configuration](#insta
 - `Rbtz.CredoChecks.Warning.DisableMigrationLock`: Forbids `@disable_migration_lock true` in Ecto migration files.
 - `Rbtz.CredoChecks.Warning.EnumEachInHeex`: Forbids `<% Enum.each %>` and other side-effecting EEx constructs in HEEx templates.
 - `Rbtz.CredoChecks.Warning.LiveViewFormCanBeRehydrated`: Ensures LiveView forms (with `phx-submit`) also carry `id` and `phx-change` so state survives deploys and reconnects.
+- `Rbtz.CredoChecks.Warning.ObanUniqueOptions`: Requires `use Oban.Worker` / `use Oban.Pro.Worker` with a literal `unique:` (or `unique: true`) to state `period:` — Oban's default dedupes for only 60 seconds — and to pair `period: :infinity` with `states: :incomplete`, since the default states block re-enqueueing once a job completes. Finite periods and computed values are left alone.
 - `Rbtz.CredoChecks.Warning.PhxClickAwayWithoutId`: Requires every element with `phx-click-away` to also carry an `id` attribute.
 - `Rbtz.CredoChecks.Warning.PhxHookComponentWithoutStableId`: Requires function components whose template uses `phx-hook` to bind the hook target to a stable DOM `id` — either a literal (`id="foo"`) or `id={@name}` bound to an attr declared with `required: true` or a binary `default:`.
 - `Rbtz.CredoChecks.Warning.PhxHookWithoutId`: Requires every element with `phx-hook` to also carry an `id` attribute.
@@ -198,6 +199,7 @@ enabled:
     {Rbtz.CredoChecks.Warning.DisableMigrationLock, []},
     {Rbtz.CredoChecks.Warning.EnumEachInHeex, []},
     {Rbtz.CredoChecks.Warning.LiveViewFormCanBeRehydrated, []},
+    {Rbtz.CredoChecks.Warning.ObanUniqueOptions, []},
     {Rbtz.CredoChecks.Warning.PhxClickAwayWithoutId, []},
     {Rbtz.CredoChecks.Warning.PhxHookComponentWithoutStableId, []},
     {Rbtz.CredoChecks.Warning.PhxHookWithoutId, []},
