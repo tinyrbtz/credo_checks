@@ -44,14 +44,12 @@ defmodule Rbtz.CredoChecks.HeexSource do
   Returns `[{contents, line_fn}]` for every HEEx template embedded in the file.
   """
   def templates(source_file) do
-    case Credo.Code.ast(source_file) do
-      {:ok, ast} ->
-        {_ast, acc} = Macro.prewalk(ast, [], &collect(&1, &2, source_file))
-        Enum.reverse(acc)
+    {_ast, acc} =
+      source_file
+      |> Credo.SourceFile.ast()
+      |> Macro.prewalk([], &collect(&1, &2, source_file))
 
-      _ ->
-        []
-    end
+    Enum.reverse(acc)
   end
 
   defp collect({:sigil_H, meta, [{:<<>>, _, [heex]}, []]} = ast, acc, _source_file)

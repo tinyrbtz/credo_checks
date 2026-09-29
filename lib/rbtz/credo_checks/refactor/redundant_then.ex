@@ -116,14 +116,9 @@ defmodule Rbtz.CredoChecks.Refactor.RedundantThen do
   def run(%SourceFile{} = source_file, params) do
     ctx = Context.build(source_file, params, __MODULE__)
 
-    case Credo.Code.ast(source_file) do
-      {:ok, ast} ->
-        {_, ctx} = Macro.prewalk(ast, ctx, &walk/2)
-        Enum.reverse(ctx.issues)
-
-      _ ->
-        []
-    end
+    ast = SourceFile.ast(source_file)
+    {_, ctx} = Macro.prewalk(ast, ctx, &walk/2)
+    Enum.reverse(ctx.issues)
   end
 
   # In piped form `x |> then(f)`, the `:then` node has 1 arg (the function).

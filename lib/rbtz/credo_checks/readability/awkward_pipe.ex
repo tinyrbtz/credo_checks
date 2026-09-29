@@ -195,11 +195,7 @@ defmodule Rbtz.CredoChecks.Readability.AwkwardPipe do
   def run(%SourceFile{} = source_file, params) do
     ctx = Context.build(source_file, params, __MODULE__)
 
-    ast_ctx =
-      case Credo.Code.ast(source_file) do
-        {:ok, ast} -> walk(ast, ctx)
-        _ -> ctx
-      end
+    ast_ctx = walk(SourceFile.ast(source_file), ctx)
 
     final_ctx = scan_heex(source_file, ast_ctx)
 
@@ -419,7 +415,7 @@ defmodule Rbtz.CredoChecks.Readability.AwkwardPipe do
     end)
   end
 
-  # Rule 3: pipe into a `Kernel.<op>(arg)` call. `Credo.Code.ast/1` always
+  # Rule 3: pipe into a `Kernel.<op>(arg)` call. `SourceFile.ast/1` always
   # emits the `:__aliases__` form for `Kernel`, so the bare-atom shape does
   # not need a clause here.
   defp maybe_flag_kernel_op(

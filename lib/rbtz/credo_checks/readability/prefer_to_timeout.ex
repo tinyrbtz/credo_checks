@@ -41,14 +41,9 @@ defmodule Rbtz.CredoChecks.Readability.PreferToTimeout do
   def run(%SourceFile{} = source_file, params) do
     ctx = Context.build(source_file, params, __MODULE__)
 
-    case Credo.Code.ast(source_file) do
-      {:ok, ast} ->
-        ctx = walk(ast, ctx, false)
-        Enum.reverse(ctx.issues)
-
-      _ ->
-        []
-    end
+    ast = SourceFile.ast(source_file)
+    ctx = walk(ast, ctx, false)
+    Enum.reverse(ctx.issues)
   end
 
   defp walk({:|>, _meta, [lhs, rhs]}, ctx, _piped?) do

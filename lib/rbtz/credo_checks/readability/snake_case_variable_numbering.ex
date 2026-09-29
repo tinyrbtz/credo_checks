@@ -53,15 +53,10 @@ defmodule Rbtz.CredoChecks.Readability.SnakeCaseVariableNumbering do
   def run(%SourceFile{} = source_file, params) do
     ctx = Context.build(source_file, params, __MODULE__)
 
-    case Credo.Code.ast(source_file) do
-      {:ok, ast} ->
-        {_ast, {ctx, _seen}} = Macro.prewalk(ast, {ctx, MapSet.new()}, &walk/2)
+    ast = SourceFile.ast(source_file)
+    {_ast, {ctx, _seen}} = Macro.prewalk(ast, {ctx, MapSet.new()}, &walk/2)
 
-        ctx.issues
-
-      _ ->
-        []
-    end
+    ctx.issues
   end
 
   defp walk({name, meta, nil} = ast, {ctx, seen}) when is_atom(name) do

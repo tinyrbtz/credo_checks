@@ -48,18 +48,14 @@ defmodule Rbtz.CredoChecks.Warning.PreferGetFieldOnChangeset do
   @doc false
   @impl Credo.Check
   def run(%SourceFile{} = source_file, params) do
-    case Credo.Code.ast(source_file) do
-      {:ok, ast} ->
-        if uses_ecto_changeset?(ast) do
-          ctx = Context.build(source_file, params, __MODULE__)
-          {_ast, ctx} = Macro.prewalk(ast, ctx, &walk/2)
-          Enum.reverse(ctx.issues)
-        else
-          []
-        end
+    ast = SourceFile.ast(source_file)
 
-      _ ->
-        []
+    if uses_ecto_changeset?(ast) do
+      ctx = Context.build(source_file, params, __MODULE__)
+      {_ast, ctx} = Macro.prewalk(ast, ctx, &walk/2)
+      Enum.reverse(ctx.issues)
+    else
+      []
     end
   end
 

@@ -36,14 +36,9 @@ defmodule Rbtz.CredoChecks.Design.CustomAliasInRouterScope do
     if router_file?(source_file.filename) do
       ctx = Context.build(source_file, params, __MODULE__)
 
-      case Credo.Code.ast(source_file) do
-        {:ok, ast} ->
-          {_ast, ctx} = Macro.prewalk(ast, ctx, &walk/2)
-          ctx.issues
-
-        _ ->
-          []
-      end
+      ast = SourceFile.ast(source_file)
+      {_ast, ctx} = Macro.prewalk(ast, ctx, &walk/2)
+      ctx.issues
     else
       []
     end

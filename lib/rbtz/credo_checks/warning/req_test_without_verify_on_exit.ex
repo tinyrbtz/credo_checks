@@ -53,7 +53,7 @@ defmodule Rbtz.CredoChecks.Warning.ReqTestWithoutVerifyOnExit do
   @impl Credo.Check
   def run(%SourceFile{} = source_file, params) do
     with true <- TestSource.test_file?(source_file.filename),
-         {:ok, ast} <- Credo.Code.ast(source_file),
+         ast = SourceFile.ast(source_file),
          line_no when is_integer(line_no) <- find_req_test_usage(ast),
          false <- has_verify_on_exit_in_setup?(ast) do
       ctx = Context.build(source_file, params, __MODULE__)

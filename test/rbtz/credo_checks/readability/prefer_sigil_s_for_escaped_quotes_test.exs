@@ -160,4 +160,39 @@ defmodule Rbtz.CredoChecks.Readability.PreferSigilSForEscapedQuotesTest do
     |> run_check(PreferSigilSForEscapedQuotes)
     |> refute_issues()
   end
+
+  test "does not flag a string ending in an escaped backslash" do
+    ~S"""
+    defmodule MyMod do
+      def dir, do: "C:\\temp\\"
+    end
+    """
+    |> to_source_file()
+    |> run_check(PreferSigilSForEscapedQuotes)
+    |> refute_issues()
+  end
+
+  test "flags an escaped quote on a later line of a multi-line string" do
+    ~S"""
+    defmodule MyMod do
+      def msg, do: "first line
+      then \"quoted\""
+    end
+    """
+    |> to_source_file()
+    |> run_check(PreferSigilSForEscapedQuotes)
+    |> assert_issue(fn issue -> assert issue.line_no == 2 end)
+  end
+
+  test "locates strings that follow multi-byte characters on the same line" do
+    ~S"""
+    defmodule MyMod do
+      def msg, do: {"café", "He said
+      \"hi\""}
+    end
+    """
+    |> to_source_file()
+    |> run_check(PreferSigilSForEscapedQuotes)
+    |> assert_issue(fn issue -> assert issue.line_no == 2 end)
+  end
 end

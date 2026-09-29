@@ -32,31 +32,44 @@ defmodule Rbtz.CredoChecks.Readability.PreferSigilSForEscapedQuotes do
   @doc false
   @impl Credo.Check
   def run(%SourceFile{} = source_file, params) do
-    ctx = Context.build(source_file, params, __MODULE__)
     source = SourceFile.source(source_file)
-    lines = String.split(source, "\n")
 
-    source
-    |> Credo.Code.to_tokens()
-    |> Enum.reduce(ctx, &check_token(&1, lines, &2))
-    |> Map.fetch!(:issues)
-    |> Enum.reverse()
+    if String.contains?(source, ~S(\")) do
+      ctx = Context.build(source_file, params, __MODULE__)
+      lines = index_lines(source)
+
+      source
+      |> Credo.Code.to_tokens()
+      |> Enum.reduce(ctx, &check_token(&1, source, lines, &2))
+      |> Map.fetch!(:issues)
+      |> Enum.reverse()
+    else
+      []
+    end
   end
 
-  defp check_token({:bin_string, {line, col, _}, _parts}, lines, ctx) do
-    if has_escaped_quote?(lines, line, col) do
+  defp index_lines(source) do
+    source
+    |> String.split("\n")
+    |> Enum.map_reduce(0, fn text, start -> {{text, start}, start + byte_size(text) + 1} end)
+    |> elem(0)
+    |> List.to_tuple()
+  end
+
+  defp check_token({:bin_string, {line, col, _}, _parts}, source, lines, ctx) do
+    if has_escaped_quote?(source, lines, line, col) do
       put_issue(ctx, issue_for(ctx, line))
     else
       ctx
     end
   end
 
-  defp check_token(_token, _lines, ctx), do: ctx
+  defp check_token(_token, _source, _lines, ctx), do: ctx
 
-  defp has_escaped_quote?(lines, line, col) do
-    [first | rest] = Enum.drop(lines, line - 1)
-    body = Enum.join([String.slice(first, max(col - 1, 0)..-1//1) | rest], "\n")
-    <<?", rest_body::binary>> = body
+  defp has_escaped_quote?(source, lines, line, col) do
+    {text, line_start} = elem(lines, line - 1)
+    start = line_start + byte_size(String.slice(text, 0, max(col - 1, 0)))
+    <<?", rest_body::binary>> = binary_part(source, start, byte_size(source) - start)
     do_scan(rest_body, 0)
   end
 

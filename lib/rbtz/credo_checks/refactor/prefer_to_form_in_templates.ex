@@ -50,6 +50,7 @@ defmodule Rbtz.CredoChecks.Refactor.PreferToFormInTemplates do
 
     source_file
     |> Rbtz.CredoChecks.HeexSource.templates()
+    |> Enum.filter(fn {heex, _line_fn} -> String.contains?(heex, "@changeset") end)
     |> Enum.reduce(ctx, &scan_template/2)
     |> Map.fetch!(:issues)
     |> Enum.reverse()

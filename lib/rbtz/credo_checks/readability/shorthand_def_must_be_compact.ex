@@ -54,14 +54,9 @@ defmodule Rbtz.CredoChecks.Readability.ShorthandDefMustBeCompact do
   def run(%SourceFile{} = source_file, params) do
     ctx = Context.build(source_file, params, __MODULE__)
 
-    case Credo.Code.ast(source_file) do
-      {:ok, ast} ->
-        {_ast, ctx} = Macro.prewalk(ast, ctx, &walk/2)
-        Enum.reverse(ctx.issues)
-
-      _ ->
-        []
-    end
+    ast = SourceFile.ast(source_file)
+    {_ast, ctx} = Macro.prewalk(ast, ctx, &walk/2)
+    Enum.reverse(ctx.issues)
   end
 
   defp walk({op, meta, [_head, [{:do, body}]]} = ast, ctx) when op in @def_ops do

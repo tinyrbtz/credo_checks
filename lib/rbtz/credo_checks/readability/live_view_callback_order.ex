@@ -58,14 +58,9 @@ defmodule Rbtz.CredoChecks.Readability.LiveViewCallbackOrder do
   def run(%SourceFile{} = source_file, params) do
     ctx = Context.build(source_file, params, __MODULE__)
 
-    case Credo.Code.ast(source_file) do
-      {:ok, ast} ->
-        {_ast, ctx} = Macro.prewalk(ast, ctx, &walk_module/2)
-        Enum.reverse(ctx.issues)
-
-      _ ->
-        []
-    end
+    ast = SourceFile.ast(source_file)
+    {_ast, ctx} = Macro.prewalk(ast, ctx, &walk_module/2)
+    Enum.reverse(ctx.issues)
   end
 
   defp walk_module({:defmodule, _meta, [_alias, [do: body]]} = ast, ctx) do

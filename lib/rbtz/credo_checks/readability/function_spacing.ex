@@ -105,19 +105,15 @@ defmodule Rbtz.CredoChecks.Readability.FunctionSpacing do
   def run(%SourceFile{} = source_file, params) do
     ctx = Context.build(source_file, params, __MODULE__)
 
-    case Credo.Code.ast(source_file) do
-      {:ok, ast} ->
-        lines =
-          source_file
-          |> SourceFile.lines()
-          |> Map.new(fn {n, text} -> {n, String.trim(text)} end)
+    ast = SourceFile.ast(source_file)
 
-        {_, ctx} = Macro.prewalk(ast, ctx, &walk_module(&1, &2, lines))
-        Enum.reverse(ctx.issues)
+    lines =
+      source_file
+      |> SourceFile.lines()
+      |> Map.new(fn {n, text} -> {n, String.trim(text)} end)
 
-      _ ->
-        []
-    end
+    {_, ctx} = Macro.prewalk(ast, ctx, &walk_module(&1, &2, lines))
+    Enum.reverse(ctx.issues)
   end
 
   defp walk_module({form, _meta, args} = ast, ctx, lines) when form in @module_forms do
