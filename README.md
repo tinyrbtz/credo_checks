@@ -33,6 +33,7 @@ them is `Rbtz.CredoChecks.all/0` — see [Installation and configuration](#insta
 - `Rbtz.CredoChecks.Readability.LiveViewCallbackOrder`: Enforces the canonical callback order in `Phoenix.LiveView` modules: `mount` → `handle_params` → `handle_event` → `handle_info` → `handle_async` → helpers → `render`.
 - `Rbtz.CredoChecks.Readability.MimicCallStyle`: Enforces the call style Mimic's docs use for test doubles — pipe the module into `expect` / `stub` (`Module |> expect(:fun, ...)`, chaining calls on the same module) and pass `reject` a function capture (`reject(&Module.fun/arity)`). Only runs when the project depends on `:mimic` (Mox and Hammox share the `expect` / `stub` names and document the unpiped form).
 - `Rbtz.CredoChecks.Readability.ModuleAttrCollectionFormatting`: Flags multi-line collections assigned to module attributes — word sigils (`~w[...]` / `~W[...]`), lists, maps/structs, and tuples — that pack more than one item onto a line. Put one item per line so the collection is easy to scan, diff, and update. Single-line collections are unaffected, however many items they hold.
+- `Rbtz.CredoChecks.Readability.NoModuledocFalse`: Forbids `@moduledoc false` — write a `@moduledoc` or leave the attribute out. Pair it with Credo's `Readability.ModuleDoc` check disabled. `@doc false` is unaffected.
 - `Rbtz.CredoChecks.Readability.PreferBlockFormForMultilineIf`: Forbids the keyword form `if cond, do: x, else: y` (and the `unless` equivalent) when the expression spans more than one line — switch to the `do ... else ... end` block form. Single-line keyword form is fine.
 - `Rbtz.CredoChecks.Readability.PreferBooleanDataAttrShorthand`: Forbids `data-[name]:` bracket-variant syntax for boolean data attributes — use `data-name:` instead, reserving brackets for value matching (`data-[state=open]:`).
 - `Rbtz.CredoChecks.Readability.PreferCapture`: Encourages the capture syntax (`&foo/1`, `&Mod.foo/2`, `&(&1 * 2)`) over `fn x -> ... end` when the anonymous function just forwards its arguments to another call in the same order, applies a single operator, or partially applies a call.
@@ -171,6 +172,7 @@ enabled:
     {Rbtz.CredoChecks.Readability.LiveViewCallbackOrder, []},
     {Rbtz.CredoChecks.Readability.MimicCallStyle, []},
     {Rbtz.CredoChecks.Readability.ModuleAttrCollectionFormatting, []},
+    {Rbtz.CredoChecks.Readability.NoModuledocFalse, []},
     {Rbtz.CredoChecks.Readability.PreferBlockFormForMultilineIf, []},
     {Rbtz.CredoChecks.Readability.PreferBooleanDataAttrShorthand, []},
     {Rbtz.CredoChecks.Readability.PreferCapture, []},

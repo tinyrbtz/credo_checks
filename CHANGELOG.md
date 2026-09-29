@@ -27,6 +27,9 @@ All notable changes to this project will be documented in this file.
 - **New check** `Rbtz.CredoChecks.Warning.ApplicationPutEnvInTests` — forbids
   `Application.put_env` / `Application.put_all_env` in test files (application
   env is global, so the test can't run async); `test_helper.exs` is exempt.
+- **New check** `Rbtz.CredoChecks.Readability.NoModuledocFalse` — forbids
+  `@moduledoc false`: write a `@moduledoc` or leave the attribute out (pair
+  with Credo's `Readability.ModuleDoc` check disabled).
 
 ## 0.9.0
 
