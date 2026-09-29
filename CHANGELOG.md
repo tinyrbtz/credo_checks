@@ -2,8 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
-## Unreleased
+## 0.10.0
 
+- **Performance**: checks reuse Credo's cached AST and skip files they can't
+  apply to, roughly halving run time.
 - **New check** `Rbtz.CredoChecks.Readability.MimicCallStyle` — enforces the
   call style Mimic's docs use in test files: flags unpiped
   `expect(Module, :fun, ...)` / `stub(Module, :fun, ...)` (pipe the module in
