@@ -68,6 +68,7 @@ defmodule Rbtz.CredoChecks.Readability.PreferSelectorModuleAttributesTest do
       test "saves", %{view: view, html: html} do
         view |> element(@save_button) |> render_click()
         assert get_text(html, "h1") == "Settings"
+        assert has_element?(view, "amp-twitter")
         assert get_text(html, @title) == "Settings"
         assert has_element?(view, "#row-#{id}")
         assert has_element?(view, selector)
@@ -86,6 +87,30 @@ defmodule Rbtz.CredoChecks.Readability.PreferSelectorModuleAttributesTest do
     """
     |> run_test_file(functions: [find_node: 1])
     |> assert_issue(fn issue -> assert issue.trigger == "#save" end)
+  end
+
+  test "adds `extra_functions` to the default functions" do
+    """
+    get_link(html, "#save")
+    has_element?(view, "#cancel")
+    """
+    |> run_test_file(extra_functions: [get_link: 1])
+    |> assert_issues(fn issues ->
+      assert issues |> Enum.map(& &1.trigger) |> Enum.sort() == ["#cancel", "#save"]
+    end)
+  end
+
+  test "flags sigil selectors without interpolation" do
+    ~S"""
+    has_element?(view, ~s([data-role="title"]))
+    has_element?(view, ~S(a[href="/x"]))
+    has_element?(view, ~s(#row-#{id}))
+    """
+    |> run_test_file()
+    |> assert_issues(fn issues ->
+      assert issues |> Enum.map(& &1.trigger) |> Enum.sort() ==
+               [~s([data-role="title"]), ~s(a[href="/x"])]
+    end)
   end
 
   test "uses the configured selector builders" do

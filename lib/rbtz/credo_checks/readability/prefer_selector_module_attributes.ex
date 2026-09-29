@@ -19,6 +19,7 @@ defmodule Rbtz.CredoChecks.Readability.PreferSelectorModuleAttributes do
         element_present?: 1,
         list_text: 1
       ],
+      extra_functions: [],
       selector_builders: [:by_test_id]
     ],
     explanations: [
@@ -35,11 +36,14 @@ defmodule Rbtz.CredoChecks.Readability.PreferSelectorModuleAttributes do
       selector builder such as `by_test_id("save")` is called with a literal
       outside a module attribute. Bare HTML tag names (`"h1"`, `"span"`,
       `"a"`) passed straight to a selector-taking function to scope a lookup
-      are allowed.
+      are allowed, as are custom-element tag names (`"amp-img"`). Sigil
+      selectors without interpolation (`~s(a[href="/"])`) count as literals.
 
       The `:functions` param maps each selector-taking function to the
       (0-based) position of its selector argument, counting a piped-in value
       as position 0; remote functions are written as `"Module.function"`.
+      Use `:extra_functions` (same format) to add project helpers without
+      restating the defaults.
       `:selector_builders` lists functions whose first argument becomes a
       selector.
 
@@ -62,13 +66,14 @@ defmodule Rbtz.CredoChecks.Readability.PreferSelectorModuleAttributes do
       params: [
         functions:
           "Keyword list of selector-taking functions and the position of their selector argument.",
+        extra_functions: "Selector-taking functions to check in addition to `:functions`.",
         selector_builders: "Functions that build a selector from their first argument."
       ]
     ]
 
   alias Rbtz.CredoChecks.TestSource
 
-  @tag_name ~r/\A[a-z][a-z0-9]*\z/
+  @tag_name ~r/\A[a-z][a-z0-9]*(-[a-z0-9]+)*\z/
 
   @doc false
   @impl Credo.Check
@@ -78,8 +83,8 @@ defmodule Rbtz.CredoChecks.Readability.PreferSelectorModuleAttributes do
       ctx = Context.build(source_file, params, __MODULE__)
 
       selector_functions =
-        params
-        |> Params.get(:functions, __MODULE__)
+        (Params.get(params, :functions, __MODULE__) ++
+           Params.get(params, :extra_functions, __MODULE__))
         |> Map.new(fn {k, v} -> {"#{k}", {v, true}} end)
 
       builders =
@@ -108,7 +113,7 @@ defmodule Rbtz.CredoChecks.Readability.PreferSelectorModuleAttributes do
   defp check_call({callee, meta, args}, functions, ctx) when is_list(args) do
     with name when is_binary(name) <- call_name(callee),
          {index, allow_tag?} <- Map.get(functions, name),
-         selector when is_binary(selector) <- Enum.at(args, index),
+         selector when is_binary(selector) <- args |> Enum.at(index) |> literal(),
          false <- allow_tag? and Regex.match?(@tag_name, selector) do
       put_issue(ctx, issue_for(ctx, name, selector, meta))
     else
@@ -117,6 +122,13 @@ defmodule Rbtz.CredoChecks.Readability.PreferSelectorModuleAttributes do
   end
 
   defp check_call(_ast, _functions, ctx), do: ctx
+
+  defp literal(string) when is_binary(string), do: string
+
+  defp literal({sigil, _, [{:<<>>, _, [string]}, []]}) when sigil in [:sigil_s, :sigil_S],
+    do: string
+
+  defp literal(_arg), do: nil
 
   defp call_name({:., _, [{:__aliases__, _, parts}, fun]}), do: Enum.join(parts ++ [fun], ".")
   defp call_name(name) when is_atom(name), do: Atom.to_string(name)

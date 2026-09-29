@@ -63,10 +63,10 @@ defmodule Rbtz.CredoChecks.Design.OneModulePerFile do
   defp walk({:quote, _, _}, acc), do: {nil, acc}
 
   defp walk({:defmodule, meta, [name, [do: body]]} = ast, {seen, ctx}) do
-    if seen and not (exception_module?(body) or struct_module?(body)) do
-      {ast, {seen, put_issue(ctx, issue_for(ctx, name, meta))}}
-    else
-      {ast, {true, ctx}}
+    cond do
+      exception_module?(body) or struct_module?(body) -> {ast, {seen, ctx}}
+      seen -> {ast, {seen, put_issue(ctx, issue_for(ctx, name, meta))}}
+      true -> {ast, {true, ctx}}
     end
   end
 

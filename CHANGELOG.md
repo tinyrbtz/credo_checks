@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## Unreleased
+
+- **`OneModulePerFile`**: a struct-only or exception module that comes first in
+  a file no longer makes the module after it count as an extra module.
+- **`PreferSelectorModuleAttributes`**: new `:extra_functions` param adds
+  project helpers to the default `:functions` instead of replacing them; sigil
+  selectors without interpolation (`~s(a[href="/"])`) are now flagged; custom
+  element tag names (`"amp-img"`) are allowed like other bare tag names.
+- **`PreferVerifiedRoutes`**: no longer flags paths with escape sequences
+  (`"/a\n"`) — `~p` doesn't unescape them, so the suggested `~p` would request
+  a different path.
+
 ## 0.10.0
 
 - **Performance**: checks reuse Credo's cached AST and skip files they can't

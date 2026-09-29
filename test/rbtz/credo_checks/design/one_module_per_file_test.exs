@@ -98,6 +98,24 @@ defmodule Rbtz.CredoChecks.Design.OneModulePerFileTest do
     |> refute_issues()
   end
 
+  test "treats the first module that isn't a struct or exception as the file's module" do
+    """
+    defmodule MyApp.Token do
+      defstruct [:value]
+    end
+
+    defmodule MyApp.Parser do
+      def parse(input), do: %MyApp.Token{value: input}
+    end
+
+    defmodule MyApp.Lexer do
+      def lex(input), do: String.graphemes(input)
+    end
+    """
+    |> run_lib_file()
+    |> assert_issue(fn issue -> assert issue.trigger == "MyApp.Lexer" end)
+  end
+
   test "does not flag modules generated inside `quote`" do
     """
     defmodule MyApp.Parser do

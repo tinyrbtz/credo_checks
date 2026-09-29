@@ -28,7 +28,8 @@ defmodule Rbtz.CredoChecks.Readability.PreferVerifiedRoutes do
       `~p` can't express — e.g. a bare path on a different host — can be
       exempted by tag: with `ignore_tags: [:with_api_host]`, any test
       tagged `@tag :with_api_host` (or under a matching `@describetag` /
-      `@moduletag`) is skipped.
+      `@moduletag`) is skipped. Paths containing escape sequences (`"/a\\n"`)
+      are skipped too: `~p` doesn't unescape them.
 
       # Bad
 
@@ -154,16 +155,22 @@ defmodule Rbtz.CredoChecks.Readability.PreferVerifiedRoutes do
   end
 
   defp maybe_put_issue(ctx, "/" <> rest = path, line_no) do
-    if String.starts_with?(rest, "/"), do: ctx, else: put_path_issue(ctx, path, line_no)
+    if String.starts_with?(rest, "/") or escaped?(path) do
+      ctx
+    else
+      put_path_issue(ctx, path, line_no)
+    end
   end
 
   defp maybe_put_issue(ctx, _path, _line_no), do: ctx
+
+  defp escaped?(path), do: inspect(path) != ~s("#{path}")
 
   defp put_path_issue(ctx, path, line_no) do
     issue =
       format_issue(ctx,
         message:
-          "Use `~p#{inspect(path)}` for in-app paths — it's verified against the router at " <>
+          ~s|Use `~p"#{path}"` for in-app paths — it's verified against the router at | <>
             "compile time.",
         trigger: path,
         line_no: line_no

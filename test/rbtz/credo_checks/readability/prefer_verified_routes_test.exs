@@ -82,15 +82,14 @@ defmodule Rbtz.CredoChecks.Readability.PreferVerifiedRoutesTest do
     end)
   end
 
-  test "escapes the path in the suggested `~p`" do
+  test "does not flag paths with escape sequences, which `~p` doesn't unescape" do
     ~S"""
     get(conn, "/articles/the-story\n")
+    get(conn, "/articles/tab\tstory")
     """
     |> to_source_file("test/my_app_web/articles_test.exs")
     |> run_check(PreferVerifiedRoutes)
-    |> assert_issue(fn issue ->
-      assert issue.message =~ ~S|Use `~p"/articles/the-story\n"`|
-    end)
+    |> refute_issues()
   end
 
   test "does not flag request helpers outside test files" do
