@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## Unreleased
+## 0.10.1
 
 - **`OneModulePerFile`**: a struct-only or exception module that comes first in
   a file no longer makes the module after it count as an extra module.
