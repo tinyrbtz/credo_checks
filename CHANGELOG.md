@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## Unreleased
+
+- **New check** `Rbtz.CredoChecks.Readability.MimicCallStyle` — enforces the
+  call style Mimic's docs use in test files: flags unpiped
+  `expect(Module, :fun, ...)` / `stub(Module, :fun, ...)` (pipe the module in
+  instead) and `reject(:fun, arity)` / `reject(Module, :fun, arity)` (use
+  `reject(&Module.fun/arity)`), including `Mimic.`-qualified calls.
+  `stub(Module)` is left alone. Only runs when the project depends on
+  `:mimic`; set `detect_dependency: false` to always run.
+
 ## 0.9.0
 
 - **New check** `Rbtz.CredoChecks.Readability.FunctionSpacing` — requires
