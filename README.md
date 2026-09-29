@@ -76,6 +76,7 @@ them is `Rbtz.CredoChecks.all/0` — see [Installation and configuration](#insta
 - `Rbtz.CredoChecks.Warning.SetMimicGlobal`: Forbids enabling Mimic in global mode (`set_mimic_global`) inside test files.
 - `Rbtz.CredoChecks.Warning.SortKeywordValidateResult`: Requires `Enum.sort/1` between `Keyword.validate!/2` and any binding that pattern-matches the result — unsorted results can silently break pattern matches on keyword list order.
 - `Rbtz.CredoChecks.Warning.StringInterpolationInClassAttr`: Forbids string interpolation inside HEEx `class=` attributes — Tailwind's static class extractor can't see interpolated classes, so they silently don't ship in the compiled CSS.
+- `Rbtz.CredoChecks.Warning.UnmatchedRepoUpdateAll`: Requires pattern-matching `Repo.update_all` results under `lib/` (`{1, nil} = ...` when exactly one row should change, at minimum `{_, nil} = ...`) — flags a dropped statement or a match against `_` / `_name`, since an update that matches no rows is otherwise silent.
 - `Rbtz.CredoChecks.Warning.UnnamedOtpProcess`: Requires `DynamicSupervisor` and `Registry` child specs to declare a `:name`.
 
 ## Installation and configuration
@@ -210,6 +211,7 @@ enabled:
     {Rbtz.CredoChecks.Warning.SetMimicGlobal, []},
     {Rbtz.CredoChecks.Warning.SortKeywordValidateResult, []},
     {Rbtz.CredoChecks.Warning.StringInterpolationInClassAttr, []},
+    {Rbtz.CredoChecks.Warning.UnmatchedRepoUpdateAll, []},
     {Rbtz.CredoChecks.Warning.UnnamedOtpProcess, []}
   ]
 ```

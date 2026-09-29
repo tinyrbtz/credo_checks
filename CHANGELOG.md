@@ -35,6 +35,10 @@ All notable changes to this project will be documented in this file.
   (Oban's default dedupes for only 60 seconds), and to pair `period: :infinity`
   with `states: :incomplete` (the default states block re-enqueueing once a job
   completes).
+- **New check** `Rbtz.CredoChecks.Warning.UnmatchedRepoUpdateAll` — requires
+  pattern-matching `Repo.update_all` results under `lib/`, flagging a dropped
+  statement or a match against `_` / `_name`, since an update that matches no
+  rows is otherwise silent.
 
 ## 0.9.0
 
