@@ -35,6 +35,7 @@ them is `Rbtz.CredoChecks.all/0` — see [Installation and configuration](#insta
 - `Rbtz.CredoChecks.Readability.PreferBlockFormForMultilineIf`: Forbids the keyword form `if cond, do: x, else: y` (and the `unless` equivalent) when the expression spans more than one line — switch to the `do ... else ... end` block form. Single-line keyword form is fine.
 - `Rbtz.CredoChecks.Readability.PreferBooleanDataAttrShorthand`: Forbids `data-[name]:` bracket-variant syntax for boolean data attributes — use `data-name:` instead, reserving brackets for value matching (`data-[state=open]:`).
 - `Rbtz.CredoChecks.Readability.PreferCapture`: Encourages the capture syntax (`&foo/1`, `&Mod.foo/2`, `&(&1 * 2)`) over `fn x -> ... end` when the anonymous function just forwards its arguments to another call in the same order, applies a single operator, or partially applies a call.
+- `Rbtz.CredoChecks.Readability.PreferDateTimeShift`: Prefers `DateTime.shift/2` (and the `NaiveDateTime` / `Date` / `Time` equivalents) for calendar arithmetic — flags `add` with a `:minute` / `:hour` / `:day` / `:week` unit, a second offset built from 60 / 3600 / 86400 / 604800 or a literal multiple of 60, and every `Date.add/2`. `add/3` stays for genuine second / millisecond offsets.
 - `Rbtz.CredoChecks.Readability.PreferNilEquality`: Prefers `x == nil` / `x != nil` over `is_nil(x)` / `not is_nil(x)` in `if` / `unless` / `cond` / `case` conditions and in `assert` / `refute` arguments. `is_nil/1` in `when` guards and Ecto query DSL is unaffected.
 - `Rbtz.CredoChecks.Readability.PreferSigilSForEscapedQuotes`: Encourages the `~s` sigil for strings that would otherwise need `\"` escapes.
 - `Rbtz.CredoChecks.Readability.PreferToTimeout`: Encourages `to_timeout(minute: 15)` (Elixir 1.17+) over Erlang's `:timer.seconds/1`, `:timer.minutes/1`, `:timer.hours/1`, and `:timer.hms/3`.
@@ -170,6 +171,7 @@ enabled:
     {Rbtz.CredoChecks.Readability.PreferBlockFormForMultilineIf, []},
     {Rbtz.CredoChecks.Readability.PreferBooleanDataAttrShorthand, []},
     {Rbtz.CredoChecks.Readability.PreferCapture, []},
+    {Rbtz.CredoChecks.Readability.PreferDateTimeShift, []},
     {Rbtz.CredoChecks.Readability.PreferNilEquality, []},
     {Rbtz.CredoChecks.Readability.PreferSigilSForEscapedQuotes, []},
     {Rbtz.CredoChecks.Readability.PreferToTimeout, []},
