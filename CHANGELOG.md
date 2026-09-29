@@ -39,6 +39,10 @@ All notable changes to this project will be documented in this file.
   pattern-matching `Repo.update_all` results under `lib/`, flagging a dropped
   statement or a match against `_` / `_name`, since an update that matches no
   rows is otherwise silent.
+- **New check** `Rbtz.CredoChecks.Readability.PreferVerifiedRoutes` — requires
+  `~p` for in-app paths in navigation calls, HEEx `navigate=` / `patch=`
+  attributes, and test requests / redirect assertions; `ignore_tags:` exempts
+  tagged tests (e.g. requests to a different host).
 
 ## 0.9.0
 

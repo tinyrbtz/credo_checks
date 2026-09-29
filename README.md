@@ -41,6 +41,7 @@ them is `Rbtz.CredoChecks.all/0` — see [Installation and configuration](#insta
 - `Rbtz.CredoChecks.Readability.PreferNilEquality`: Prefers `x == nil` / `x != nil` over `is_nil(x)` / `not is_nil(x)` in `if` / `unless` / `cond` / `case` conditions and in `assert` / `refute` arguments. `is_nil/1` in `when` guards and Ecto query DSL is unaffected.
 - `Rbtz.CredoChecks.Readability.PreferSigilSForEscapedQuotes`: Encourages the `~s` sigil for strings that would otherwise need `\"` escapes.
 - `Rbtz.CredoChecks.Readability.PreferToTimeout`: Encourages `to_timeout(minute: 15)` (Elixir 1.17+) over Erlang's `:timer.seconds/1`, `:timer.minutes/1`, `:timer.hours/1`, and `:timer.hms/3`.
+- `Rbtz.CredoChecks.Readability.PreferVerifiedRoutes`: Requires `~p` for in-app paths — flags raw `"/path"` strings in `push_navigate` / `push_patch` / `redirect` `to:`, HEEx `navigate=` / `patch=` attributes, and (in tests) `live`, the `Phoenix.ConnTest` request helpers, and `assert_redirect` / `assert_patch`. Skips `router.ex`; `ignore_tags:` exempts tests tagged for paths `~p` can't express.
 - `Rbtz.CredoChecks.Readability.RedundantClassAttrWrapping`: Flags HEEx `class={...}` attributes whose wrapping is unnecessary — `class={"foo"}` / `class={["foo"]}` should be `class="foo"`; `class={[expr]}` should be `class={expr}`.
 - `Rbtz.CredoChecks.Readability.ReqTestCallStyle`: Enforces the call style Req's docs use for `Req.Test.expect` / `Req.Test.stub` — the name is the first argument, not piped in (`Req.Test.stub/2` returns `:ok`, so piped chains break).
 - `Rbtz.CredoChecks.Readability.ShorthandDefMustBeCompact`: Forbids the shorthand `def name(args), do: body` form whose body spans more than one line — switch to a `do...end` block when the body has to wrap. Multi-line heads (e.g. nested pattern matches) are fine as long as the body stays on a single line.
@@ -182,6 +183,7 @@ enabled:
     {Rbtz.CredoChecks.Readability.PreferNilEquality, []},
     {Rbtz.CredoChecks.Readability.PreferSigilSForEscapedQuotes, []},
     {Rbtz.CredoChecks.Readability.PreferToTimeout, []},
+    {Rbtz.CredoChecks.Readability.PreferVerifiedRoutes, []},
     {Rbtz.CredoChecks.Readability.RedundantClassAttrWrapping, []},
     {Rbtz.CredoChecks.Readability.ReqTestCallStyle, []},
     {Rbtz.CredoChecks.Readability.ShorthandDefMustBeCompact, []},
